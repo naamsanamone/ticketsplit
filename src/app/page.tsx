@@ -17,6 +17,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'split' | 'census' | 'leaderboard' | 'receipts'>('split');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(MOCK_MOVIES[872585].movie); // Default to Oppenheimer
   const [completedSubmission, setCompletedSubmission] = useState<TicketSplitSubmission | null>(null);
+  const [censusKey, setCensusKey] = useState<number>(0);
 
   const handleMovieSelect = (movie: Movie) => {
     setSelectedMovie(movie);
@@ -125,9 +126,11 @@ export default function Home() {
             {selectedMovie && (
               <div className="pt-2">
                 <MovieCensusHub 
+                  key={`${selectedMovie.id}-${censusKey}`}
                   stats={getMovieCommunityStats(selectedMovie.id)} 
                   movieTitle={selectedMovie.title} 
                   userAllocations={completedSubmission?.movieId === selectedMovie.id ? completedSubmission.allocations : undefined} 
+                  onRefresh={() => setCensusKey((k) => k + 1)}
                 />
               </div>
             )}

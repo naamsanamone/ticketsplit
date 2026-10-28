@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Star, 
   ChevronDown, 
@@ -12,25 +12,36 @@ import {
   Scale, 
   ArrowUpRight, 
   ArrowDownRight, 
-  Equal 
+  Equal,
+  FlaskConical,
+  RotateCcw
 } from 'lucide-react';
 import { MovieCommunityStats, Contributor } from '../types';
-import { calculateComparisonDeltas } from '../lib/store';
+import { calculateComparisonDeltas, simulateUserScenario, resetMovieBallots, getMovieCommunityStats } from '../lib/store';
 import { Avatar } from './Avatar';
 
 interface MovieCensusHubProps {
   stats: MovieCommunityStats;
   movieTitle: string;
   userAllocations?: Contributor[];
+  contributors?: Contributor[];
+  onRefresh?: () => void;
 }
 
 export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({ 
-  stats, 
+  stats: initialStats, 
   movieTitle,
-  userAllocations 
+  userAllocations,
+  contributors,
+  onRefresh
 }) => {
   const [activeTab, setActiveTab] = useState<'leaderboard' | 'comparison' | 'ballots'>('leaderboard');
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [stats, setStats] = useState<MovieCommunityStats>(initialStats);
+
+  useEffect(() => {
+    setStats(initialStats);
+  }, [initialStats]);
 
   const ROLE_COLORS: Record<string, { bg: string; bar: string; text: string }> = {
     'Director': { bg: 'bg-amber-500/10', bar: 'bg-amber-400', text: 'text-amber-400' },
@@ -57,6 +68,20 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
     }
   };
 
+  const handleRunTestScenario = () => {
+    simulateUserScenario(stats.movieId, movieTitle, null, contributors);
+    const updated = getMovieCommunityStats(stats.movieId);
+    setStats(updated);
+    if (onRefresh) onRefresh();
+  };
+
+  const handleReset = () => {
+    resetMovieBallots(stats.movieId);
+    const updated = getMovieCommunityStats(stats.movieId);
+    setStats(updated);
+    if (onRefresh) onRefresh();
+  };
+
   const userHasAllocated = userAllocations && userAllocations.some((c) => c.amount > 0);
   const comparisonDeltas = userHasAllocated 
     ? calculateComparisonDeltas(userAllocations!, stats.avgAllocations)
@@ -73,19 +98,21 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
           <div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               <h3 className="font-extrabold text-sm sm:text-base text-white tracking-tight">
-                {movieTitle} Census
+                {movieTitle} Census & Leaderboard
               </h3>
               <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[9px] sm:text-[10px] font-bold">
-                LEADERBOARD
+                {stats.totalVoters > 0 ? `${stats.totalVoters} VOTES` : 'OPEN FOR VOTING'}
               </span>
             </div>
             <p className="text-[11px] sm:text-xs text-zinc-400 mt-0.5">
-              Based on <strong>{stats.totalVoters.toLocaleString()}</strong> verified splits
+              {stats.totalVoters > 0 
+                ? `Calculated strictly from ${stats.totalVoters} verified voter ballots`
+                : 'No ballots cast yet. Cast your vote or run simulation below!'}
             </p>
           </div>
         </div>
 
-        {/* Highlight Score Badges - Mobile Optimized */}
+        {/* Highlight Score Badges */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           <div className="flex-1 sm:flex-initial px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-zinc-800/80 border border-zinc-700/60 text-center">
             <span className="text-[9px] sm:text-[10px] uppercase font-bold text-zinc-400 block">VALUE</span>
@@ -118,9 +145,35 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
         <span className="font-semibold text-[11px] sm:text-xs leading-tight">{stats.dominantVerdict}</span>
       </div>
 
+      {/* 3. Logic Verification Toolbar (Lets User Test Their Scenario Instantly) */}
+      <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs flex-wrap gap-2">
+        <div className="flex items-center gap-2 text-zinc-400 font-semibold text-[11px]">
+          <FlaskConical className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span>Business Logic Verification:</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleRunTestScenario}
+            className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[10px] sm:text-[11px] font-bold transition-all shadow"
+            title="Simulates 1 Even split + 2 Director Heavy + 1 Hero + 1 Heroine + 1 Villain"
+          >
+            🧪 Run 6-Voter Test Scenario (Director #1)
+          </button>
+          {stats.totalVoters > 0 && (
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-rose-300 text-[10px] sm:text-[11px] transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset Votes</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {isExpanded && (
         <div className="space-y-3.5 sm:space-y-4 pt-1">
-          {/* 3. Sub-Navigation Tabs */}
+          {/* 4. Sub-Navigation Tabs */}
           <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-semibold w-full">
             <button
               onClick={() => setActiveTab('leaderboard')}
@@ -131,7 +184,7 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
               }`}
             >
               <Trophy className="w-3.5 h-3.5 shrink-0" />
-              <span>Leaderboard</span>
+              <span>Film Leaderboard</span>
             </button>
 
             <button
@@ -158,7 +211,7 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
               }`}
             >
               <Clock className="w-3.5 h-3.5 shrink-0" />
-              <span>Recent</span>
+              <span>Ballots ({stats.totalVoters})</span>
             </button>
           </div>
 
@@ -169,7 +222,7 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
               <div className="space-y-1">
                 <div className="flex justify-between text-[10px] sm:text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
                   <span>Audience Share (100%)</span>
-                  <span>Consensus</span>
+                  <span>{stats.totalVoters > 0 ? `${stats.totalVoters} Voters Consensus` : 'Equal Base'}</span>
                 </div>
                 <div className="h-3.5 sm:h-4 w-full bg-zinc-800 rounded-full overflow-hidden flex shadow-inner p-0.5 gap-0.5">
                   {stats.avgAllocations.map((item, idx) => {
@@ -179,7 +232,7 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
                         key={`bar-${item.name}-${idx}`}
                         style={{ width: `${Math.max(4, item.avgPercentage)}%` }}
                         className={`${color.bar} h-full rounded-sm transition-all hover:opacity-90`}
-                        title={`#${item.rank} ${item.name} (${item.role}): ${item.avgPercentage}%`}
+                        title={`#${item.rank} ${item.name} (${item.role}): ${item.avgPercentage}% (~₹${item.avgAmountRupees})`}
                       />
                     );
                   })}
@@ -194,8 +247,8 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
                     <div
                       key={`item-${item.name}-${item.role}`}
                       className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all ${
-                        item.rank === 1
-                          ? 'bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-900 border-amber-500/40 shadow-lg shadow-amber-500/5'
+                        item.rank === 1 && stats.totalVoters > 0
+                          ? 'bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-900 border-amber-500/50 shadow-lg shadow-amber-500/10'
                           : 'bg-zinc-900/90 border-zinc-800/80 hover:border-zinc-700'
                       }`}
                     >
@@ -215,9 +268,9 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
                               <h4 className="font-bold text-xs sm:text-sm text-white truncate max-w-[130px] sm:max-w-none">
                                 {item.name}
                               </h4>
-                              {item.rank === 1 && (
+                              {item.rank === 1 && stats.totalVoters > 0 && (
                                 <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[8px] sm:text-[9px] font-black uppercase">
-                                  #1
+                                  #1 Value Driver
                                 </span>
                               )}
                             </div>
@@ -232,8 +285,8 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
                           <div className="font-black text-sm sm:text-base text-amber-400">
                             {item.avgPercentage}%
                           </div>
-                          <div className="text-[10px] sm:text-[11px] text-zinc-400">
-                            ~₹{item.avgAmountRupees}
+                          <div className="text-[10px] sm:text-[11px] text-zinc-400 font-mono">
+                            ~₹{item.avgAmountRupees} / ticket
                           </div>
                         </div>
                       </div>
@@ -260,7 +313,7 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
                   <Scale className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 mx-auto opacity-80" />
                   <h4 className="font-bold text-xs sm:text-sm text-white">No Split Entered Yet</h4>
                   <p className="text-[11px] sm:text-xs text-zinc-400 max-w-sm mx-auto">
-                    Adjust the sliders below, and we will compare your valuation with the <strong>{stats.totalVoters.toLocaleString()}</strong> crowd votes!
+                    Split this ticket on the <strong>Valuate</strong> tab, and we will compare your valuation against the crowd!
                   </p>
                 </div>
               ) : (
@@ -308,30 +361,38 @@ export const MovieCensusHub: React.FC<MovieCensusHubProps> = ({
 
           {/* TAB C: RECENT COMMUNITY BALLOTS */}
           {activeTab === 'ballots' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
-              {stats.recentSplits.map((split) => (
-                <div
-                  key={split.id}
-                  className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-zinc-950/80 border border-zinc-800/80 text-xs space-y-1.5"
-                >
-                  <div className="flex items-center justify-between text-zinc-400 text-[10px] sm:text-[11px]">
-                    <span className="flex items-center gap-1 font-semibold text-zinc-200">
-                      <Ticket className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
-                      {split.voterLabel} (₹{split.ticketPrice})
-                    </span>
-                    <span className="flex items-center gap-1 text-zinc-500 text-[9px] sm:text-[10px]">
-                      <Clock className="w-3 h-3" />
-                      {split.timeAgo}
-                    </span>
-                  </div>
-                  <p className="text-zinc-300 text-[11px] sm:text-xs">
-                    Gave top cut to: <strong className="text-amber-400">{split.topRecipient}</strong> ({split.topPercentage}%)
-                  </p>
-                  <p className="text-[10px] sm:text-[11px] text-rose-300/90 italic truncate font-mono">
-                    &ldquo;{split.verdict}&rdquo;
-                  </p>
+            <div className="space-y-3">
+              {stats.recentSplits.length === 0 ? (
+                <div className="p-6 text-center text-zinc-500 text-xs">
+                  No ballots recorded yet. Be the first to vote or run the simulation above!
                 </div>
-              ))}
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+                  {stats.recentSplits.map((split) => (
+                    <div
+                      key={split.id}
+                      className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-zinc-950/80 border border-zinc-800/80 text-xs space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between text-zinc-400 text-[10px] sm:text-[11px]">
+                        <span className="flex items-center gap-1 font-semibold text-zinc-200">
+                          <Ticket className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
+                          {split.voterLabel} (₹{split.ticketPrice})
+                        </span>
+                        <span className="flex items-center gap-1 text-zinc-500 text-[9px] sm:text-[10px]">
+                          <Clock className="w-3 h-3" />
+                          {split.timeAgo}
+                        </span>
+                      </div>
+                      <p className="text-zinc-300 text-[11px] sm:text-xs">
+                        Gave top cut to: <strong className="text-amber-400">{split.topRecipient}</strong> ({split.topPercentage}%)
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] text-rose-300/90 italic truncate font-mono">
+                        &ldquo;{split.verdict}&rdquo;
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

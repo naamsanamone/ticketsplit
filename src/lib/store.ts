@@ -3,12 +3,12 @@ import {
   LeaderboardEntry, 
   MovieROIEntry, 
   Contributor, 
-  MovieCommunityStats,
-  CommunityAllocationItem,
-  RecentSplitPreview,
-  ComparisonDelta
+  MovieCommunityStats, 
+  CommunityAllocationItem, 
+  RecentSplitPreview, 
+  ComparisonDelta 
 } from '../types';
-import { INITIAL_LEADERBOARD, INITIAL_MOVIE_ROIS } from './mockData';
+import { INITIAL_LEADERBOARD, INITIAL_MOVIE_ROIS, MOCK_MOVIES } from './mockData';
 
 const STORAGE_KEYS = {
   USER_KEY: 'ticketsplit_user_key',
@@ -25,6 +25,13 @@ export function getUserKey(): string {
     localStorage.setItem(STORAGE_KEYS.USER_KEY, key);
   }
   return key;
+}
+
+export function resetUserKey(): string {
+  if (typeof window === 'undefined') return 'user_server';
+  const newKey = `voter_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  localStorage.setItem(STORAGE_KEYS.USER_KEY, newKey);
+  return newKey;
 }
 
 export function getStoredSubmissions(): TicketSplitSubmission[] {
@@ -64,173 +71,176 @@ export function getStoredMovieROIs(): MovieROIEntry[] {
 }
 
 /**
- * Calculates the exact Delta between a User's split and the Crowd Consensus
+ * Normalizes contributor name for consistent aggregation across ballots
  */
-export function calculateComparisonDeltas(
-  userAllocations: Contributor[],
-  communityAllocations: CommunityAllocationItem[]
-): ComparisonDelta[] {
-  return userAllocations.map((userAlloc) => {
-    const cleanName = userAlloc.name.split('(')[0].trim().toLowerCase();
-    const match = communityAllocations.find(
-      (c) => c.name.toLowerCase().includes(cleanName) || cleanName.includes(c.name.toLowerCase())
-    );
+function normalizeName(name: string): string {
+  return name.split('(')[0].trim();
+}
 
-    const communityPct = match ? match.avgPercentage : 15.0;
-    const diff = Number((userAlloc.percentage - communityPct).toFixed(1));
-
-    let insight = "Aligned with crowd consensus";
-    if (diff >= 10) {
-      insight = `+${diff}% higher than crowd (You strongly valued ${userAlloc.role})`;
-    } else if (diff <= -10) {
-      insight = `${diff}% lower than crowd average`;
-    }
-
-    return {
-      contributorName: userAlloc.name.split('(')[0].trim(),
-      role: userAlloc.role,
-      userPercentage: userAlloc.percentage,
-      communityPercentage: communityPct,
-      difference: diff,
-      insight
-    };
-  });
+function getAggKey(name: string, role: string): string {
+  return `${normalizeName(name).toLowerCase()}__${role.toLowerCase()}`;
 }
 
 /**
- * Calculates comprehensive, detailed crowd consensus stats for a movie:
- * Includes in-movie rankings (Rank #1, #2, #3...) for the single-movie leaderboard.
+ * PURE BUSINESS LOGIC FOR FILM CENSUS:
+ * When users vote, their ballots 100% strictly determine the rankings and percentages!
+ * If 1 user votes evenly (₹25 each), 2 users vote for Director (₹75, ₹80), 
+ * 1 for Hero (₹70), 1 for Heroine (₹70), 1 for Villain (₹70):
+ * Director gets ₹228 total (25.3% avg) vs ₹156 (17.3% avg) for Hero/Heroine/Villain.
+ * Director MUST be Rank #1!
  */
 export function getMovieCommunityStats(
   movieId: number, 
   currentContributors?: Contributor[]
 ): MovieCommunityStats {
   const submissions = getStoredSubmissions().filter((s) => s.movieId === movieId);
-  const liveCount = submissions.length;
-  const baseVoters = 1240; // Historical baseline
-  const totalVoters = baseVoters + liveCount;
+  const totalVoters = submissions.length;
 
-  let avgTicketPrice = 160;
-  if (liveCount > 0) {
-    const totalSpent = submissions.reduce((sum, s) => sum + s.ticketPrice, 0) + (baseVoters * 160);
-    avgTicketPrice = Math.round(totalSpent / totalVoters);
-  }
+  // Case 1: No real ballots cast yet for this film
+  if (totalVoters === 0) {
+    const avgTicketPrice = 150;
+    const valueScore = 8.0;
+    const dominantVerdict = "No ballots cast yet — Be the first to valuate this film!";
 
-  const allocMap: Record<string, { 
-    id: string;
-    name: string; 
-    role: string; 
-    profilePath: string | null; 
-    totalPct: number; 
-    totalAmt: number; 
-    count: number;
-  }> = {};
+    let avgAllocations: CommunityAllocationItem[] = [];
+    if (currentContributors && currentContributors.length > 0) {
+      const equalPct = Number((100 / currentContributors.length).toFixed(1));
+      const equalAmt = Math.round(avgTicketPrice / currentContributors.length);
 
-  // Baseline from current contributors if provided
-  if (currentContributors && currentContributors.length > 0) {
-    currentContributors.forEach((c) => {
-      let baselinePct = 12.0;
-      if (c.role === 'Director') baselinePct = 34.5;
-      else if (c.role === 'Actor') baselinePct = 38.0;
-      else if (c.role === 'Music') baselinePct = 16.5;
-      else if (c.role === 'Producer') baselinePct = 10.0;
-      else if (c.role === 'Audience / Experience') baselinePct = 15.0;
-
-      const key = `${c.name}_${c.role}`;
-      allocMap[key] = {
+      avgAllocations = currentContributors.map((c, idx) => ({
         id: c.id,
-        name: c.name.split('(')[0].trim(),
+        name: normalizeName(c.name),
         role: c.role,
         profilePath: c.profilePath,
-        totalPct: baselinePct * baseVoters,
-        totalAmt: Math.round((baselinePct / 100) * avgTicketPrice) * baseVoters,
-        count: baseVoters
+        avgPercentage: equalPct,
+        avgAmountRupees: equalAmt,
+        voterCount: 0,
+        rank: idx + 1
+      }));
+    }
+
+    return {
+      movieId,
+      totalVoters: 0,
+      avgTicketPrice,
+      valueScore,
+      dominantVerdict,
+      avgAllocations,
+      recentSplits: []
+    };
+  }
+
+  // Case 2: We have real voter ballots! Calculate pure averages across all ballots.
+  const totalSpent = submissions.reduce((sum, s) => sum + s.ticketPrice, 0);
+  const avgTicketPrice = Math.round(totalSpent / totalVoters);
+
+  // Map to accumulate totals per contributor
+  const aggMap: Record<string, {
+    id: string;
+    displayName: string;
+    role: string;
+    profilePath: string | null;
+    totalAmount: number;
+    totalPercentage: number;
+    voterCount: number;
+  }> = {};
+
+  // First, ensure all current movie contributors are present in the map
+  if (currentContributors) {
+    currentContributors.forEach((c) => {
+      const key = getAggKey(c.name, c.role);
+      aggMap[key] = {
+        id: c.id,
+        displayName: normalizeName(c.name),
+        role: c.role,
+        profilePath: c.profilePath,
+        totalAmount: 0,
+        totalPercentage: 0,
+        voterCount: 0
       };
     });
   }
 
-  // Blend in actual submissions
-  submissions.forEach((sub) => {
-    sub.allocations.forEach((alloc) => {
-      const key = `${alloc.name}_${alloc.role}`;
-      const cleanName = alloc.name.split('(')[0].trim();
-      if (!allocMap[key]) {
-        allocMap[key] = {
+  // Aggregate every user ballot
+  submissions.forEach((ballot) => {
+    ballot.allocations.forEach((alloc) => {
+      const key = getAggKey(alloc.name, alloc.role);
+      const clean = normalizeName(alloc.name);
+
+      if (!aggMap[key]) {
+        aggMap[key] = {
           id: alloc.id,
-          name: cleanName,
+          displayName: clean,
           role: alloc.role,
           profilePath: alloc.profilePath,
-          totalPct: 0,
-          totalAmt: 0,
-          count: 0
+          totalAmount: 0,
+          totalPercentage: 0,
+          voterCount: 0
         };
       }
-      allocMap[key].totalPct += alloc.percentage;
-      allocMap[key].totalAmt += alloc.amount;
-      allocMap[key].count += 1;
+
+      aggMap[key].totalAmount += alloc.amount;
+      aggMap[key].totalPercentage += alloc.percentage;
+      aggMap[key].voterCount += 1;
     });
   });
 
-  const avgAllocations: CommunityAllocationItem[] = Object.values(allocMap)
-    .map((item) => ({
-      id: item.id,
-      name: item.name,
-      role: item.role,
-      profilePath: item.profilePath,
-      avgPercentage: Number((item.totalPct / item.count).toFixed(1)),
-      avgAmountRupees: Math.round(item.totalAmt / item.count),
-      voterCount: item.count,
-      rank: 0
-    }))
-    .sort((a, b) => b.avgPercentage - a.avgPercentage)
+  // Calculate pure arithmetic average across all voters who voted on this film
+  const avgAllocations: CommunityAllocationItem[] = Object.values(aggMap)
+    .map((item) => {
+      // Average percentage = sum of percentages / total voters
+      const avgPct = Number((item.totalPercentage / totalVoters).toFixed(1));
+      // Average rupees = sum of amount / total voters
+      const avgAmt = Number((item.totalAmount / totalVoters).toFixed(1));
+
+      return {
+        id: item.id,
+        name: item.displayName,
+        role: item.role,
+        profilePath: item.profilePath,
+        avgPercentage: avgPct,
+        avgAmountRupees: Math.round(avgAmt),
+        voterCount: item.voterCount,
+        rank: 0
+      };
+    })
+    // Sort STRICTLY descending: highest average cut is Rank #1!
+    .sort((a, b) => b.avgPercentage - a.avgPercentage || b.avgAmountRupees - a.avgAmountRupees)
     .map((item, index) => ({
       ...item,
       rank: index + 1
     }));
 
+  // Determine dominant verdict based on who won Rank #1
+  const top1 = avgAllocations[0];
+  const top2 = avgAllocations[1];
+
   let dominantVerdict = "Well-Balanced Cinematic Collaboration";
-  if (avgAllocations.length > 0) {
-    const top = avgAllocations[0];
-    if (top.avgPercentage >= 35) {
-      dominantVerdict = `${top.role} Heavy Showcase (${top.name} captured ${top.avgPercentage}% of audience valuation)`;
+  if (top1 && top1.avgPercentage > 0) {
+    if (top2 && top1.avgPercentage >= top2.avgPercentage + 5) {
+      dominantVerdict = `👑 ${top1.name} (${top1.role}) Carried This Film with a dominant ${top1.avgPercentage}% ticket cut!`;
+    } else {
+      dominantVerdict = `🎬 Lead Value Driver: ${top1.name} (${top1.role}) leads the film at ${top1.avgPercentage}% cut.`;
     }
   }
 
-  const audienceCut = avgAllocations.find((a) => a.role.includes('Audience') || a.role.includes('Experience'))?.avgPercentage || 15;
-  const valueScore = Number(Math.min(9.8, Math.max(6.5, 7.2 + (audienceCut / 15))).toFixed(1));
+  // Calculate Value Score based on audience satisfaction cut
+  const expCut = avgAllocations.find((a) => a.role.toLowerCase().includes('audience') || a.role.toLowerCase().includes('experience'))?.avgPercentage || 0;
+  const valueScore = Number(Math.min(9.9, Math.max(6.0, 7.5 + (expCut / 15))).toFixed(1));
 
-  const recentSplits: RecentSplitPreview[] = [
-    ...submissions.slice(0, 3).map((s, i) => {
-      const topAlloc = [...s.allocations].sort((a, b) => b.amount - a.amount)[0];
-      return {
-        id: s.id,
-        voterLabel: `Moviegoer #${totalVoters - i}`,
-        ticketPrice: s.ticketPrice,
-        topRecipient: topAlloc?.name.split('(')[0].trim() || 'Cast',
-        topPercentage: topAlloc?.percentage || 0,
-        verdict: s.verdict,
-        timeAgo: 'Just now'
-      };
-    }),
-    {
-      id: 'demo-1',
-      voterLabel: `Moviegoer #${totalVoters - 4}`,
-      ticketPrice: 150,
-      topRecipient: avgAllocations[0]?.name || 'Director',
-      topPercentage: avgAllocations[0]?.avgPercentage || 38,
-      verdict: '🎬 Storytelling and craft carried the show!',
-      timeAgo: '2 hrs ago'
-    },
-    {
-      id: 'demo-2',
-      voterLabel: `Moviegoer #${totalVoters - 12}`,
-      ticketPrice: 200,
-      topRecipient: avgAllocations[1]?.name || 'Lead Actor',
-      topPercentage: avgAllocations[1]?.avgPercentage || 32,
-      verdict: '🌟 Star presence was worth the admission!',
-      timeAgo: '5 hrs ago'
-    }
-  ];
+  // Build Recent Ballots feed from real submissions
+  const recentSplits: RecentSplitPreview[] = submissions.slice(0, 6).map((s, idx) => {
+    const topItem = [...s.allocations].sort((a, b) => b.amount - a.amount)[0];
+    return {
+      id: s.id,
+      voterLabel: `Moviegoer #${totalVoters - idx}`,
+      ticketPrice: s.ticketPrice,
+      topRecipient: topItem ? normalizeName(topItem.name) : 'Cinema',
+      topPercentage: topItem?.percentage || 0,
+      verdict: s.verdict,
+      timeAgo: idx === 0 ? 'Just now' : `${idx * 15}m ago`
+    };
+  });
 
   return {
     movieId,
@@ -241,6 +251,40 @@ export function getMovieCommunityStats(
     avgAllocations,
     recentSplits
   };
+}
+
+/**
+ * Calculates the exact Delta between a User's split and the Crowd Consensus
+ */
+export function calculateComparisonDeltas(
+  userAllocations: Contributor[],
+  communityAllocations: CommunityAllocationItem[]
+): ComparisonDelta[] {
+  return userAllocations.map((userAlloc) => {
+    const cleanName = normalizeName(userAlloc.name).toLowerCase();
+    const match = communityAllocations.find(
+      (c) => c.name.toLowerCase().includes(cleanName) || cleanName.includes(c.name.toLowerCase())
+    );
+
+    const communityPct = match ? match.avgPercentage : 0;
+    const diff = Number((userAlloc.percentage - communityPct).toFixed(1));
+
+    let insight = "Aligned with crowd consensus";
+    if (diff >= 10) {
+      insight = `+${diff}% higher than crowd (You strongly valued ${userAlloc.role})`;
+    } else if (diff <= -10) {
+      insight = `${diff}% lower than crowd average`;
+    }
+
+    return {
+      contributorName: normalizeName(userAlloc.name),
+      role: userAlloc.role,
+      userPercentage: userAlloc.percentage,
+      communityPercentage: communityPct,
+      difference: diff,
+      insight
+    };
+  });
 }
 
 export function generateVerdict(allocations: Contributor[]): string {
@@ -265,7 +309,7 @@ export function generateVerdict(allocations: Contributor[]): string {
 
   if (highest.role === 'Actor') {
     if (highest.percentage >= 40) {
-      return `🌟 Star-Powered Domination! (${highest.name.split('(')[0].trim()} Carried)`;
+      return `🌟 Star-Powered Domination! (${normalizeName(highest.name)} Carried)`;
     }
     return `🎭 Superb Acting Performance`;
   }
@@ -281,6 +325,9 @@ export function generateVerdict(allocations: Contributor[]): string {
   return "🎟️ Well-Balanced Cinematic Value!";
 }
 
+/**
+ * Saves a split submission.
+ */
 export function saveTicketSplit(submission: TicketSplitSubmission): { isUpdate: boolean } {
   if (typeof window === 'undefined') return { isUpdate: false };
 
@@ -304,75 +351,265 @@ export function saveTicketSplit(submission: TicketSplitSubmission): { isUpdate: 
 
     localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(updatedList));
 
-    // Update Global Multi-Movie Leaderboard Aggregates
-    const leaderboard = getStoredLeaderboard();
-    submission.allocations.forEach((alloc) => {
-      if (alloc.role === 'Audience / Experience' || alloc.role === 'Custom') return;
+    // Update Global Leaderboard Aggregates
+    updateGlobalLeaderboard(submission, isUpdate);
 
-      const talentRole = (['Director', 'Actor', 'Music', 'Producer'].includes(alloc.role) 
-        ? alloc.role 
-        : 'Actor') as 'Director' | 'Actor' | 'Music' | 'Producer';
-        
-      const cleanName = alloc.name.split('(')[0].trim();
-      const existingEntry = leaderboard.find((l) => l.name.toLowerCase() === cleanName.toLowerCase());
-
-      if (existingEntry) {
-        if (!isUpdate) {
-          const newTotal = existingEntry.totalVotes + 1;
-          existingEntry.avgPercentage = Number(
-            ((existingEntry.avgPercentage * existingEntry.totalVotes + alloc.percentage) / newTotal).toFixed(1)
-          );
-          existingEntry.avgAmountRupees = Number(
-            ((existingEntry.avgAmountRupees * existingEntry.totalVotes + alloc.amount) / newTotal).toFixed(1)
-          );
-          existingEntry.totalVotes = newTotal;
-
-          // Update multi-movie filmography list
-          if (!existingEntry.filmography) existingEntry.filmography = [];
-          const filmCredit = existingEntry.filmography.find(
-            (f) => f.movieTitle.toLowerCase() === submission.movieTitle.toLowerCase()
-          );
-          if (filmCredit) {
-            filmCredit.voteCount += 1;
-            filmCredit.avgPercentage = Number(((filmCredit.avgPercentage + alloc.percentage) / 2).toFixed(1));
-          } else {
-            existingEntry.filmography.push({
-              movieTitle: submission.movieTitle,
-              movieId: submission.movieId,
-              avgPercentage: alloc.percentage,
-              voteCount: 1
-            });
-            existingEntry.filmsCount = existingEntry.filmography.length;
-          }
-        }
-      } else {
-        leaderboard.push({
-          id: `talent-${Date.now()}-${Math.random()}`,
-          tmdbPersonId: alloc.tmdbId,
-          name: cleanName,
-          role: talentRole,
-          profilePath: alloc.profilePath,
-          totalVotes: 1,
-          avgPercentage: alloc.percentage,
-          avgAmountRupees: alloc.amount,
-          topMovieTitle: submission.movieTitle,
-          filmsCount: 1,
-          filmography: [
-            {
-              movieTitle: submission.movieTitle,
-              movieId: submission.movieId,
-              avgPercentage: alloc.percentage,
-              voteCount: 1
-            }
-          ]
-        });
-      }
-    });
-
-    localStorage.setItem(STORAGE_KEYS.LEADERBOARD, JSON.stringify(leaderboard));
     return { isUpdate };
   } catch (err) {
     console.error("Failed to save split:", err);
     return { isUpdate: false };
   }
+}
+
+/**
+ * Updates Global Multi-Movie Leaderboard
+ */
+function updateGlobalLeaderboard(submission: TicketSplitSubmission, isUpdate: boolean) {
+  const leaderboard = getStoredLeaderboard();
+  
+  submission.allocations.forEach((alloc) => {
+    if (alloc.role === 'Audience / Experience' || alloc.role === 'Custom') return;
+
+    const talentRole = (['Director', 'Actor', 'Music', 'Producer'].includes(alloc.role) 
+      ? alloc.role 
+      : 'Actor') as 'Director' | 'Actor' | 'Music' | 'Producer';
+      
+    const cleanName = normalizeName(alloc.name);
+    const existingEntry = leaderboard.find((l) => l.name.toLowerCase() === cleanName.toLowerCase());
+
+    if (existingEntry) {
+      if (!isUpdate) {
+        const newTotal = existingEntry.totalVotes + 1;
+        existingEntry.avgPercentage = Number(
+          ((existingEntry.avgPercentage * existingEntry.totalVotes + alloc.percentage) / newTotal).toFixed(1)
+        );
+        existingEntry.avgAmountRupees = Number(
+          ((existingEntry.avgAmountRupees * existingEntry.totalVotes + alloc.amount) / newTotal).toFixed(1)
+        );
+        existingEntry.totalVotes = newTotal;
+
+        if (!existingEntry.filmography) existingEntry.filmography = [];
+        const filmCredit = existingEntry.filmography.find(
+          (f) => f.movieTitle.toLowerCase() === submission.movieTitle.toLowerCase()
+        );
+        if (filmCredit) {
+          filmCredit.voteCount += 1;
+          filmCredit.avgPercentage = Number(((filmCredit.avgPercentage + alloc.percentage) / 2).toFixed(1));
+        } else {
+          existingEntry.filmography.push({
+            movieTitle: submission.movieTitle,
+            movieId: submission.movieId,
+            avgPercentage: alloc.percentage,
+            voteCount: 1
+          });
+          existingEntry.filmsCount = existingEntry.filmography.length;
+        }
+      }
+    } else {
+      leaderboard.push({
+        id: `talent-${Date.now()}-${Math.random()}`,
+        tmdbPersonId: alloc.tmdbId,
+        name: cleanName,
+        role: talentRole,
+        profilePath: alloc.profilePath,
+        totalVotes: 1,
+        avgPercentage: alloc.percentage,
+        avgAmountRupees: alloc.amount,
+        topMovieTitle: submission.movieTitle,
+        filmsCount: 1,
+        filmography: [
+          {
+            movieTitle: submission.movieTitle,
+            movieId: submission.movieId,
+            avgPercentage: alloc.percentage,
+            voteCount: 1
+          }
+        ]
+      });
+    }
+  });
+
+  localStorage.setItem(STORAGE_KEYS.LEADERBOARD, JSON.stringify(leaderboard));
+}
+
+/**
+ * SIMULATES THE USER'S EXACT TEST SCENARIO:
+ * 1 user votes evenly (₹25 for each of the 6 roles)
+ * 2 users vote Director heavy (₹75, ₹80)
+ * 1 user votes Hero heavy (₹70)
+ * 1 user votes Heroine heavy (₹70)
+ * 1 user votes Villain heavy (₹70)
+ * Total: 6 distinct voters.
+ * Director gets ₹228 total (25.3% avg) vs ₹156 (17.3% avg) for Hero, Heroine, Villain.
+ * Director emerges as indisputable #1!
+ */
+export function simulateUserScenario(
+  movieId: number,
+  movieTitle: string,
+  posterPath: string | null,
+  contributors?: Contributor[]
+): void {
+  if (typeof window === 'undefined') return;
+
+  const ticketPrice = 150;
+
+  // Build a distinct set of 6 contributors (Director, Hero, Heroine, Villain, Music, Experience)
+  let activeList: Contributor[] = [];
+  if (contributors && contributors.length >= 6) {
+    activeList = [...contributors];
+  } else if (MOCK_MOVIES[movieId]) {
+    const mock = MOCK_MOVIES[movieId];
+    const dir = mock.crew.find((c) => c.job === 'Director');
+    const music = mock.crew.find((c) => c.job.includes('Music') || c.job.includes('Composer'));
+    activeList = [
+      {
+        id: `dir-${dir?.id || 101}`,
+        name: dir?.name || 'Director',
+        role: 'Director',
+        profilePath: dir?.profile_path || null,
+        amount: 0,
+        percentage: 0
+      },
+      {
+        id: `hero-${mock.cast[0]?.id || 102}`,
+        name: mock.cast[0] ? `${mock.cast[0].name} (Hero)` : 'Hero / Lead Actor',
+        role: 'Actor',
+        profilePath: mock.cast[0]?.profile_path || null,
+        amount: 0,
+        percentage: 0
+      },
+      {
+        id: `heroine-${mock.cast[1]?.id || 103}`,
+        name: mock.cast[1] ? `${mock.cast[1].name} (Heroine)` : 'Heroine / Lead Actress',
+        role: 'Actor',
+        profilePath: mock.cast[1]?.profile_path || null,
+        amount: 0,
+        percentage: 0
+      },
+      {
+        id: `villain-${mock.cast[2]?.id || 104}`,
+        name: mock.cast[2] ? `${mock.cast[2].name} (Villain)` : 'Villain / Antagonist',
+        role: 'Actor',
+        profilePath: mock.cast[2]?.profile_path || null,
+        amount: 0,
+        percentage: 0
+      },
+      {
+        id: `music-${music?.id || 105}`,
+        name: music?.name || 'Music Director',
+        role: 'Music',
+        profilePath: music?.profile_path || null,
+        amount: 0,
+        percentage: 0
+      },
+      {
+        id: `exp-${movieId}`,
+        name: 'Popcorn & Audience Experience',
+        role: 'Audience / Experience',
+        profilePath: null,
+        amount: 0,
+        percentage: 0
+      }
+    ];
+  } else {
+    activeList = [
+      { id: `dir-${movieId}`, name: 'Director', role: 'Director', profilePath: null, amount: 0, percentage: 0 },
+      { id: `hero-${movieId}`, name: 'Hero / Lead Actor', role: 'Actor', profilePath: null, amount: 0, percentage: 0 },
+      { id: `heroine-${movieId}`, name: 'Heroine / Lead Actress', role: 'Actor', profilePath: null, amount: 0, percentage: 0 },
+      { id: `villain-${movieId}`, name: 'Villain / Antagonist', role: 'Actor', profilePath: null, amount: 0, percentage: 0 },
+      { id: `music-${movieId}`, name: 'Music Director', role: 'Music', profilePath: null, amount: 0, percentage: 0 },
+      { id: `exp-${movieId}`, name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 0, percentage: 0 }
+    ];
+  }
+
+  // Ensure 6 distinct objects with unique IDs
+  const dir = activeList.find((c) => c.role === 'Director') || activeList[0];
+  const rem1 = activeList.filter((c) => c.id !== dir.id);
+  const hero = rem1.find((c) => c.role === 'Actor') || rem1[0];
+  const rem2 = rem1.filter((c) => c.id !== hero.id);
+  const heroine = rem2.find((c) => c.role === 'Actor') || rem2[0];
+  const rem3 = rem2.filter((c) => c.id !== heroine.id);
+  const villain = rem3.find((c) => c.role === 'Actor' || c.role === 'Producer') || rem3[0];
+  const rem4 = rem3.filter((c) => c.id !== villain.id);
+  const music = rem4.find((c) => c.role === 'Music') || rem4[0];
+  const rem5 = rem4.filter((c) => c.id !== music.id);
+  const exp = rem5[0] || activeList[5];
+
+  const sixContributors = [dir, hero, heroine, villain, music, exp];
+
+  const voters = [
+    // Voter 1: Even split for all (₹25 each)
+    {
+      label: 'Voter 1 (Even Split ₹25 each)',
+      cuts: { [dir.id]: 25, [hero.id]: 25, [heroine.id]: 25, [villain.id]: 25, [music.id]: 25, [exp.id]: 25 }
+    },
+    // Voter 2: Director heavy (₹75)
+    {
+      label: 'Voter 2 (Director Heavy ₹75)',
+      cuts: { [dir.id]: 75, [hero.id]: 15, [heroine.id]: 15, [villain.id]: 15, [music.id]: 15, [exp.id]: 15 }
+    },
+    // Voter 3: Director heavy (₹80)
+    {
+      label: 'Voter 3 (Director Heavy ₹80)',
+      cuts: { [dir.id]: 80, [hero.id]: 14, [heroine.id]: 14, [villain.id]: 14, [music.id]: 14, [exp.id]: 14 }
+    },
+    // Voter 4: Hero heavy (₹70)
+    {
+      label: 'Voter 4 (Hero Heavy ₹70)',
+      cuts: { [hero.id]: 70, [dir.id]: 16, [heroine.id]: 16, [villain.id]: 16, [music.id]: 16, [exp.id]: 16 }
+    },
+    // Voter 5: Heroine heavy (₹70)
+    {
+      label: 'Voter 5 (Heroine Heavy ₹70)',
+      cuts: { [heroine.id]: 70, [dir.id]: 16, [hero.id]: 16, [villain.id]: 16, [music.id]: 16, [exp.id]: 16 }
+    },
+    // Voter 6: Villain heavy (₹70)
+    {
+      label: 'Voter 6 (Villain Heavy ₹70)',
+      cuts: { [villain.id]: 70, [dir.id]: 16, [hero.id]: 16, [heroine.id]: 16, [music.id]: 16, [exp.id]: 16 }
+    }
+  ];
+
+  // Clear existing submissions for this movie first to cleanly test this scenario
+  const existing = getStoredSubmissions().filter((s) => s.movieId !== movieId);
+
+  const newSubmissions: TicketSplitSubmission[] = voters.map((v, i) => {
+    const allocations: Contributor[] = sixContributors.map((c) => {
+      const amt = v.cuts[c.id] || 0;
+      return {
+        ...c,
+        amount: amt,
+        percentage: Number(((amt / ticketPrice) * 100).toFixed(1))
+      };
+    });
+
+    return {
+      id: `sim-split-${movieId}-${i + 1}-${Date.now()}`,
+      userKey: `sim_user_${i + 1}`,
+      movieId,
+      movieTitle,
+      moviePoster: posterPath,
+      ticketPrice,
+      currency: 'INR',
+      allocations,
+      verdict: v.label,
+      createdAt: new Date(Date.now() - (6 - i) * 60000).toISOString()
+    };
+  });
+
+  localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify([...newSubmissions, ...existing]));
+
+  // Update global leaderboard
+  newSubmissions.forEach((sub) => {
+    updateGlobalLeaderboard(sub, false);
+  });
+}
+
+/**
+ * Resets all votes for a specific movie
+ */
+export function resetMovieBallots(movieId: number): void {
+  if (typeof window === 'undefined') return;
+  const remaining = getStoredSubmissions().filter((s) => s.movieId !== movieId);
+  localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(remaining));
 }
