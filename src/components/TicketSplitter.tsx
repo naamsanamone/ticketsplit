@@ -29,7 +29,7 @@ interface TicketSplitterProps {
   movie: Movie;
   onSplitCompleted: (submission: TicketSplitSubmission) => void;
   onViewCensus?: () => void;
-  onRequireAuth?: () => void;
+  onRequireAuth?: (onSuccess?: () => void) => void;
 }
 
 const PRESET_PRICES = [100, 150, 200, 300, 500];
@@ -214,17 +214,7 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({
     );
   };
 
-  // Submit split validating 1-user-1-ticket
-  const handleSubmit = () => {
-    if (!isPerfect) return;
-
-    if (!isVoterVerified()) {
-      if (onRequireAuth) {
-        onRequireAuth();
-        return;
-      }
-    }
-
+  const executeSubmit = () => {
     const verdict = generateVerdict(contributors);
     const userKey = getUserKey();
 
@@ -243,6 +233,20 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({
 
     saveTicketSplit(submission);
     onSplitCompleted(submission);
+  };
+
+  // Submit split validating 1-user-1-ticket
+  const handleSubmit = () => {
+    if (!isPerfect) return;
+
+    if (!isVoterVerified()) {
+      if (onRequireAuth) {
+        onRequireAuth(() => executeSubmit());
+        return;
+      }
+    }
+
+    executeSubmit();
   };
 
   if (isLoading) {

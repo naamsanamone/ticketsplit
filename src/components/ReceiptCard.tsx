@@ -122,8 +122,22 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ submission, onReset })
           </p>
         </div>
 
-        {/* Simulated Barcode */}
-        <div className="pt-2 border-t-2 border-dashed border-zinc-700 text-center space-y-1">
+        {/* Verified Voter & Simulated Barcode */}
+        <div className="pt-2 border-t-2 border-dashed border-zinc-700 text-center space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] text-zinc-400 px-2 pb-1 border-b border-zinc-800">
+            <span className="text-zinc-500 font-bold uppercase">OFFICIAL VOTER:</span>
+            <span className="font-bold text-emerald-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              {submission.userKey.startsWith('phone_') 
+                ? `+91 ${submission.userKey.replace('phone_', '')}` 
+                : submission.userKey.startsWith('email_') 
+                ? submission.userKey.replace('email_', '') 
+                : submission.userKey.startsWith('google_')
+                ? 'Google Verified'
+                : 'Verified Cinema Pass'}
+            </span>
+          </div>
+
           <div className="h-7 w-4/5 mx-auto flex items-center justify-center gap-0.5 opacity-60">
             {Array.from({ length: 36 }).map((_, i) => (
               <div
@@ -135,7 +149,7 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ submission, onReset })
             ))}
           </div>
           <p className="text-[9px] text-zinc-500 tracking-widest uppercase">
-            ID: {submission.id.slice(0, 16)} • {new Date(submission.createdAt).toLocaleDateString()}
+            BALLOT: {submission.id.slice(0, 16)} • {new Date(submission.createdAt).toLocaleDateString()}
           </p>
         </div>
       </div>

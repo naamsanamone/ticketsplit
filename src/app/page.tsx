@@ -22,6 +22,7 @@ export default function Home() {
   const [censusKey, setCensusKey] = useState<number>(0);
   const [voter, setVoter] = useState<VoterProfile | null>(null);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+  const [authSuccessCallback, setAuthSuccessCallback] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     setVoter(getStoredVoter());
@@ -37,6 +38,15 @@ export default function Home() {
     setCompletedSubmission(null);
   };
 
+  const handleRequireAuth = (callback?: () => void) => {
+    if (callback) {
+      setAuthSuccessCallback(() => callback);
+    } else {
+      setAuthSuccessCallback(null);
+    }
+    setShowAuthModal(true);
+  };
+
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
       {/* Sticky Header with Voter Pass */}
@@ -44,17 +54,24 @@ export default function Home() {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
         voter={voter}
-        onOpenAuth={() => setShowAuthModal(true)}
+        onOpenAuth={() => handleRequireAuth()}
         onLogout={handleLogout}
       />
 
       {/* Zero-Cost Voter Verification Modal */}
       <AuthModal 
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          setShowAuthModal(false);
+          setAuthSuccessCallback(null);
+        }}
         onVerified={(verifiedVoter) => {
           setVoter(verifiedVoter);
           setShowAuthModal(false);
+          if (authSuccessCallback) {
+            authSuccessCallback();
+            setAuthSuccessCallback(null);
+          }
         }}
         actionReason={selectedMovie ? `to cast your ballot for ${selectedMovie.title}` : undefined}
       />
@@ -106,7 +123,7 @@ export default function Home() {
                 movie={selectedMovie} 
                 onSplitCompleted={(sub) => setCompletedSubmission(sub)} 
                 onViewCensus={() => setActiveTab('census')}
-                onRequireAuth={() => setShowAuthModal(true)}
+                onRequireAuth={handleRequireAuth}
               />
             ) : (
               /* Fallback Movie Grid if no movie selected */
