@@ -6,7 +6,8 @@ import {
   MovieCommunityStats, 
   CommunityAllocationItem, 
   RecentSplitPreview, 
-  ComparisonDelta 
+  ComparisonDelta,
+  FilmographyCredit
 } from '../types';
 import { INITIAL_LEADERBOARD, INITIAL_MOVIE_ROIS, MOCK_MOVIES } from './mockData';
 
@@ -34,11 +35,321 @@ export function resetUserKey(): string {
   return newKey;
 }
 
+/**
+ * Generates initial starter submissions for the 4 featured movies.
+ * Each movie gets 4 clean, realistic voter ballots with ticket price ₹150.
+ * Pure arithmetic across these provides the initial baseline without huge vote anchors!
+ */
+export function generateStarterSeedSubmissions(): TicketSplitSubmission[] {
+  return [
+    // 1. Oppenheimer (872585)
+    {
+      id: 'seed-oppenheimer-1',
+      userKey: 'seed_user_1',
+      movieId: 872585,
+      movieTitle: 'Oppenheimer',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-525', tmdbId: 525, name: 'Christopher Nolan', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg', amount: 60, percentage: 40.0 },
+        { id: 'actor-2037', tmdbId: 2037, name: 'Cillian Murphy (J. Robert Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/2lKs67r7FI4bPu0AXxMUJZxmUXn.jpg', amount: 40, percentage: 26.7 },
+        { id: 'actor-3223', tmdbId: 3223, name: 'Robert Downey Jr. (Lewis Strauss)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5qHNjhtjMD4YWH3fq0lZMBv9779.jpg', amount: 10, percentage: 6.7 },
+        { id: 'actor-5081', tmdbId: 5081, name: 'Emily Blunt (Kitty Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/nPJXaRMVUvgmn2SY8yQ65Z0aNfL.jpg', amount: 10, percentage: 6.7 },
+        { id: 'music-64670', tmdbId: 64670, name: 'Ludwig Göransson', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/5c1kS017W4hT96U3yB6P9YtU5tU.jpg', amount: 15, percentage: 10.0 },
+        { id: 'exp-872585', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 15, percentage: 10.0 }
+      ],
+      verdict: 'Director Led Masterpiece',
+      createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
+    },
+    {
+      id: 'seed-oppenheimer-2',
+      userKey: 'seed_user_2',
+      movieId: 872585,
+      movieTitle: 'Oppenheimer',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-525', tmdbId: 525, name: 'Christopher Nolan', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-2037', tmdbId: 2037, name: 'Cillian Murphy (J. Robert Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/2lKs67r7FI4bPu0AXxMUJZxmUXn.jpg', amount: 45, percentage: 30.0 },
+        { id: 'actor-3223', tmdbId: 3223, name: 'Robert Downey Jr. (Lewis Strauss)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5qHNjhtjMD4YWH3fq0lZMBv9779.jpg', amount: 10, percentage: 6.7 },
+        { id: 'actor-5081', tmdbId: 5081, name: 'Emily Blunt (Kitty Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/nPJXaRMVUvgmn2SY8yQ65Z0aNfL.jpg', amount: 10, percentage: 6.7 },
+        { id: 'music-64670', tmdbId: 64670, name: 'Ludwig Göransson', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/5c1kS017W4hT96U3yB6P9YtU5tU.jpg', amount: 15, percentage: 10.0 },
+        { id: 'exp-872585', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 15, percentage: 10.0 }
+      ],
+      verdict: 'Stunning Visual Collaboration',
+      createdAt: new Date(Date.now() - 3600000 * 20).toISOString()
+    },
+    {
+      id: 'seed-oppenheimer-3',
+      userKey: 'seed_user_3',
+      movieId: 872585,
+      movieTitle: 'Oppenheimer',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-525', tmdbId: 525, name: 'Christopher Nolan', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg', amount: 60, percentage: 40.0 },
+        { id: 'actor-2037', tmdbId: 2037, name: 'Cillian Murphy (J. Robert Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/2lKs67r7FI4bPu0AXxMUJZxmUXn.jpg', amount: 40, percentage: 26.7 },
+        { id: 'actor-3223', tmdbId: 3223, name: 'Robert Downey Jr. (Lewis Strauss)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5qHNjhtjMD4YWH3fq0lZMBv9779.jpg', amount: 10, percentage: 6.7 },
+        { id: 'actor-5081', tmdbId: 5081, name: 'Emily Blunt (Kitty Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/nPJXaRMVUvgmn2SY8yQ65Z0aNfL.jpg', amount: 10, percentage: 6.7 },
+        { id: 'music-64670', tmdbId: 64670, name: 'Ludwig Göransson', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/5c1kS017W4hT96U3yB6P9YtU5tU.jpg', amount: 15, percentage: 10.0 },
+        { id: 'exp-872585', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 15, percentage: 10.0 }
+      ],
+      verdict: 'Nolan Delivered',
+      createdAt: new Date(Date.now() - 3600000 * 16).toISOString()
+    },
+    {
+      id: 'seed-oppenheimer-4',
+      userKey: 'seed_user_4',
+      movieId: 872585,
+      movieTitle: 'Oppenheimer',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-525', tmdbId: 525, name: 'Christopher Nolan', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-2037', tmdbId: 2037, name: 'Cillian Murphy (J. Robert Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/2lKs67r7FI4bPu0AXxMUJZxmUXn.jpg', amount: 45, percentage: 30.0 },
+        { id: 'actor-3223', tmdbId: 3223, name: 'Robert Downey Jr. (Lewis Strauss)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5qHNjhtjMD4YWH3fq0lZMBv9779.jpg', amount: 10, percentage: 6.7 },
+        { id: 'actor-5081', tmdbId: 5081, name: 'Emily Blunt (Kitty Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/nPJXaRMVUvgmn2SY8yQ65Z0aNfL.jpg', amount: 10, percentage: 6.7 },
+        { id: 'music-64670', tmdbId: 64670, name: 'Ludwig Göransson', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/5c1kS017W4hT96U3yB6P9YtU5tU.jpg', amount: 15, percentage: 10.0 },
+        { id: 'exp-872585', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 15, percentage: 10.0 }
+      ],
+      verdict: 'Cinematic Brilliance',
+      createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+    },
+
+    // 2. RRR (579974)
+    {
+      id: 'seed-rrr-1',
+      userKey: 'seed_user_5',
+      movieId: 579974,
+      movieTitle: 'RRR',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0ye2fq0SZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-147021', tmdbId: 147021, name: 'S. S. Rajamouli', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/qPskSZxvoYflC8Bye4tGNBSroy5.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-148037', tmdbId: 148037, name: 'N.T. Rama Rao Jr. (Komaram Bheem)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5ycQgZ3SPUa12bq0yn1jpToBq9X.jpg', amount: 35, percentage: 23.3 },
+        { id: 'actor-124314', tmdbId: 124314, name: 'Ram Charan (Alluri Sitarama Raju)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 30, percentage: 20.0 },
+        { id: 'music-225318', tmdbId: 225318, name: 'M. M. Keeravani', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/r0f7RTGIkG0ZBaQViIKrE1g82Ec.jpg', amount: 20, percentage: 13.3 },
+        { id: 'exp-579974', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 10, percentage: 6.7 }
+      ],
+      verdict: 'High Octane Action by Rajamouli',
+      createdAt: new Date(Date.now() - 3600000 * 22).toISOString()
+    },
+    {
+      id: 'seed-rrr-2',
+      userKey: 'seed_user_6',
+      movieId: 579974,
+      movieTitle: 'RRR',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0ye2fq0SZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-147021', tmdbId: 147021, name: 'S. S. Rajamouli', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/qPskSZxvoYflC8Bye4tGNBSroy5.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-148037', tmdbId: 148037, name: 'N.T. Rama Rao Jr. (Komaram Bheem)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5ycQgZ3SPUa12bq0yn1jpToBq9X.jpg', amount: 30, percentage: 20.0 },
+        { id: 'actor-124314', tmdbId: 124314, name: 'Ram Charan (Alluri Sitarama Raju)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 35, percentage: 23.3 },
+        { id: 'music-225318', tmdbId: 225318, name: 'M. M. Keeravani', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/r0f7RTGIkG0ZBaQViIKrE1g82Ec.jpg', amount: 20, percentage: 13.3 },
+        { id: 'exp-579974', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 10, percentage: 6.7 }
+      ],
+      verdict: 'Pure Theater Madness',
+      createdAt: new Date(Date.now() - 3600000 * 18).toISOString()
+    },
+    {
+      id: 'seed-rrr-3',
+      userKey: 'seed_user_7',
+      movieId: 579974,
+      movieTitle: 'RRR',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0ye2fq0SZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-147021', tmdbId: 147021, name: 'S. S. Rajamouli', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/qPskSZxvoYflC8Bye4tGNBSroy5.jpg', amount: 60, percentage: 40.0 },
+        { id: 'actor-148037', tmdbId: 148037, name: 'N.T. Rama Rao Jr. (Komaram Bheem)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5ycQgZ3SPUa12bq0yn1jpToBq9X.jpg', amount: 35, percentage: 23.3 },
+        { id: 'actor-124314', tmdbId: 124314, name: 'Ram Charan (Alluri Sitarama Raju)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 25, percentage: 16.7 },
+        { id: 'music-225318', tmdbId: 225318, name: 'M. M. Keeravani', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/r0f7RTGIkG0ZBaQViIKrE1g82Ec.jpg', amount: 20, percentage: 13.3 },
+        { id: 'exp-579974', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 10, percentage: 6.7 }
+      ],
+      verdict: 'Rajamouli Vision Carried',
+      createdAt: new Date(Date.now() - 3600000 * 14).toISOString()
+    },
+    {
+      id: 'seed-rrr-4',
+      userKey: 'seed_user_8',
+      movieId: 579974,
+      movieTitle: 'RRR',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0ye2fq0SZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-147021', tmdbId: 147021, name: 'S. S. Rajamouli', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/qPskSZxvoYflC8Bye4tGNBSroy5.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-148037', tmdbId: 148037, name: 'N.T. Rama Rao Jr. (Komaram Bheem)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5ycQgZ3SPUa12bq0yn1jpToBq9X.jpg', amount: 30, percentage: 20.0 },
+        { id: 'actor-124314', tmdbId: 124314, name: 'Ram Charan (Alluri Sitarama Raju)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 35, percentage: 23.3 },
+        { id: 'music-225318', tmdbId: 225318, name: 'M. M. Keeravani', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/r0f7RTGIkG0ZBaQViIKrE1g82Ec.jpg', amount: 20, percentage: 13.3 },
+        { id: 'exp-579974', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 10, percentage: 6.7 }
+      ],
+      verdict: 'Naatu Naatu Euphoria',
+      createdAt: new Date(Date.now() - 3600000 * 8).toISOString()
+    },
+
+    // 3. Dune: Part Two (693134)
+    {
+      id: 'seed-dune-1',
+      userKey: 'seed_user_9',
+      movieId: 693134,
+      movieTitle: 'Dune: Part Two',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-137427', tmdbId: 137427, name: 'Denis Villeneuve', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg', amount: 50, percentage: 33.3 },
+        { id: 'actor-1190668', tmdbId: 1190668, name: 'Timothée Chalamet (Paul Atreides)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/BE2sdjpgsa2rNTFa66f7upkaOP.jpg', amount: 35, percentage: 23.3 },
+        { id: 'music-947', tmdbId: 947, name: 'Hans Zimmer', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/tpQnDeHY15szIXvpnhlprufz4d.jpg', amount: 40, percentage: 26.7 },
+        { id: 'exp-693134', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 25, percentage: 16.7 }
+      ],
+      verdict: 'Audiovisual Masterpiece',
+      createdAt: new Date(Date.now() - 3600000 * 21).toISOString()
+    },
+    {
+      id: 'seed-dune-2',
+      userKey: 'seed_user_10',
+      movieId: 693134,
+      movieTitle: 'Dune: Part Two',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-137427', tmdbId: 137427, name: 'Denis Villeneuve', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-1190668', tmdbId: 1190668, name: 'Timothée Chalamet (Paul Atreides)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/BE2sdjpgsa2rNTFa66f7upkaOP.jpg', amount: 35, percentage: 23.3 },
+        { id: 'music-947', tmdbId: 947, name: 'Hans Zimmer', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/tpQnDeHY15szIXvpnhlprufz4d.jpg', amount: 35, percentage: 23.3 },
+        { id: 'exp-693134', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 25, percentage: 16.7 }
+      ],
+      verdict: 'Epic Scale & Sound',
+      createdAt: new Date(Date.now() - 3600000 * 17).toISOString()
+    },
+    {
+      id: 'seed-dune-3',
+      userKey: 'seed_user_11',
+      movieId: 693134,
+      movieTitle: 'Dune: Part Two',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-137427', tmdbId: 137427, name: 'Denis Villeneuve', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg', amount: 50, percentage: 33.3 },
+        { id: 'actor-1190668', tmdbId: 1190668, name: 'Timothée Chalamet (Paul Atreides)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/BE2sdjpgsa2rNTFa66f7upkaOP.jpg', amount: 40, percentage: 26.7 },
+        { id: 'music-947', tmdbId: 947, name: 'Hans Zimmer', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/tpQnDeHY15szIXvpnhlprufz4d.jpg', amount: 40, percentage: 26.7 },
+        { id: 'exp-693134', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 20, percentage: 13.3 }
+      ],
+      verdict: 'Denis + Zimmer Magic',
+      createdAt: new Date(Date.now() - 3600000 * 11).toISOString()
+    },
+    {
+      id: 'seed-dune-4',
+      userKey: 'seed_user_12',
+      movieId: 693134,
+      movieTitle: 'Dune: Part Two',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'dir-137427', tmdbId: 137427, name: 'Denis Villeneuve', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg', amount: 55, percentage: 36.7 },
+        { id: 'actor-1190668', tmdbId: 1190668, name: 'Timothée Chalamet (Paul Atreides)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/BE2sdjpgsa2rNTFa66f7upkaOP.jpg', amount: 35, percentage: 23.3 },
+        { id: 'music-947', tmdbId: 947, name: 'Hans Zimmer', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/tpQnDeHY15szIXvpnhlprufz4d.jpg', amount: 40, percentage: 26.7 },
+        { id: 'exp-693134', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 20, percentage: 13.3 }
+      ],
+      verdict: 'Cinematic Spectacle',
+      createdAt: new Date(Date.now() - 3600000 * 7).toISOString()
+    },
+
+    // 4. Jawan (872906)
+    {
+      id: 'seed-jawan-1',
+      userKey: 'seed_user_13',
+      movieId: 872906,
+      movieTitle: 'Jawan',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/jFt1g94utjj2YKQioVJTYWzOuvZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'actor-35742', tmdbId: 35742, name: 'Shah Rukh Khan (Vikram Rathore / Azad)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 65, percentage: 43.3 },
+        { id: 'dir-1259367', tmdbId: 1259367, name: 'Atlee', role: 'Director', profilePath: null, amount: 35, percentage: 23.3 },
+        { id: 'music-1081464', tmdbId: 1081464, name: 'Anirudh Ravichander', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/xKvlrZpRaXkm2K2ZiXpqgrEedUU.jpg', amount: 35, percentage: 23.3 },
+        { id: 'exp-872906', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 15, percentage: 10.0 }
+      ],
+      verdict: 'King Khan Domination',
+      createdAt: new Date(Date.now() - 3600000 * 23).toISOString()
+    },
+    {
+      id: 'seed-jawan-2',
+      userKey: 'seed_user_14',
+      movieId: 872906,
+      movieTitle: 'Jawan',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/jFt1g94utjj2YKQioVJTYWzOuvZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'actor-35742', tmdbId: 35742, name: 'Shah Rukh Khan (Vikram Rathore / Azad)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 60, percentage: 40.0 },
+        { id: 'dir-1259367', tmdbId: 1259367, name: 'Atlee', role: 'Director', profilePath: null, amount: 40, percentage: 26.7 },
+        { id: 'music-1081464', tmdbId: 1081464, name: 'Anirudh Ravichander', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/xKvlrZpRaXkm2K2ZiXpqgrEedUU.jpg', amount: 40, percentage: 26.7 },
+        { id: 'exp-872906', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 10, percentage: 6.7 }
+      ],
+      verdict: 'Massive BGM & SRK Screen Presence',
+      createdAt: new Date(Date.now() - 3600000 * 19).toISOString()
+    },
+    {
+      id: 'seed-jawan-3',
+      userKey: 'seed_user_15',
+      movieId: 872906,
+      movieTitle: 'Jawan',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/jFt1g94utjj2YKQioVJTYWzOuvZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'actor-35742', tmdbId: 35742, name: 'Shah Rukh Khan (Vikram Rathore / Azad)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 65, percentage: 43.3 },
+        { id: 'dir-1259367', tmdbId: 1259367, name: 'Atlee', role: 'Director', profilePath: null, amount: 35, percentage: 23.3 },
+        { id: 'music-1081464', tmdbId: 1081464, name: 'Anirudh Ravichander', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/xKvlrZpRaXkm2K2ZiXpqgrEedUU.jpg', amount: 35, percentage: 23.3 },
+        { id: 'exp-872906', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 15, percentage: 10.0 }
+      ],
+      verdict: 'Full Paisa Vasool',
+      createdAt: new Date(Date.now() - 3600000 * 13).toISOString()
+    },
+    {
+      id: 'seed-jawan-4',
+      userKey: 'seed_user_16',
+      movieId: 872906,
+      movieTitle: 'Jawan',
+      moviePoster: 'https://image.tmdb.org/t/p/w500/jFt1g94utjj2YKQioVJTYWzOuvZ.jpg',
+      ticketPrice: 150,
+      currency: 'INR',
+      allocations: [
+        { id: 'actor-35742', tmdbId: 35742, name: 'Shah Rukh Khan (Vikram Rathore / Azad)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: 60, percentage: 40.0 },
+        { id: 'dir-1259367', tmdbId: 1259367, name: 'Atlee', role: 'Director', profilePath: null, amount: 40, percentage: 26.7 },
+        { id: 'music-1081464', tmdbId: 1081464, name: 'Anirudh Ravichander', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/xKvlrZpRaXkm2K2ZiXpqgrEedUU.jpg', amount: 40, percentage: 26.7 },
+        { id: 'exp-872906', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: 10, percentage: 6.7 }
+      ],
+      verdict: 'SRK Stole The Entire Ticket',
+      createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
+    }
+  ];
+}
+
 export function getStoredSubmissions(): TicketSplitSubmission[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SUBMISSIONS);
-    return raw ? JSON.parse(raw) : [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+    // Seed initial realistic ballots across the 4 core movies
+    const seed = generateStarterSeedSubmissions();
+    localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(seed));
+    return seed;
   } catch {
     return [];
   }
@@ -50,24 +361,224 @@ export function getUserSubmissionForMovie(movieId: number): TicketSplitSubmissio
   return all.find((s) => s.movieId === movieId && s.userKey === userKey) || null;
 }
 
+/**
+ * PURE BUSINESS LOGIC FOR MULTI-MOVIE LEADERBOARD:
+ * Aggregates verified ballots across ALL films with 100% pure arithmetic.
+ * Avg % = sum(percentage) / totalBallots containing that talent.
+ * Avg ₹ = sum(amount) / totalBallots containing that talent.
+ * Strictly sorts descending by avgPercentage!
+ */
+export function calculateGlobalLeaderboard(submissions: TicketSplitSubmission[]): LeaderboardEntry[] {
+  const talentMap = new Map<string, {
+    id: string;
+    tmdbPersonId?: number;
+    name: string;
+    role: 'Director' | 'Actor' | 'Music' | 'Producer';
+    profilePath: string | null;
+    totalPercentage: number;
+    totalAmount: number;
+    totalVotes: number;
+    filmMap: Map<string, {
+      movieId?: number;
+      movieTitle: string;
+      sumPercentage: number;
+      voteCount: number;
+    }>;
+  }>();
+
+  submissions.forEach((sub) => {
+    sub.allocations.forEach((alloc) => {
+      // Exclude generic audience experience / popcorn custom boxes from talent ranking
+      if (
+        alloc.role.toLowerCase().includes('audience') || 
+        alloc.role.toLowerCase().includes('experience') || 
+        alloc.role === 'Custom'
+      ) {
+        return;
+      }
+
+      const talentRole: 'Director' | 'Actor' | 'Music' | 'Producer' = 
+        alloc.role === 'Director' ? 'Director' :
+        alloc.role === 'Music' ? 'Music' :
+        alloc.role === 'Producer' ? 'Producer' : 'Actor';
+
+      const cleanName = normalizeName(alloc.name);
+      const aggKey = `${cleanName.toLowerCase()}__${talentRole.toLowerCase()}`;
+
+      let talent = talentMap.get(aggKey);
+      if (!talent) {
+        talent = {
+          id: alloc.id || `talent-${cleanName.replace(/\s+/g, '-').toLowerCase()}`,
+          tmdbPersonId: alloc.tmdbId,
+          name: cleanName,
+          role: talentRole,
+          profilePath: alloc.profilePath || null,
+          totalPercentage: 0,
+          totalAmount: 0,
+          totalVotes: 0,
+          filmMap: new Map()
+        };
+        talentMap.set(aggKey, talent);
+      }
+
+      if (!talent.profilePath && alloc.profilePath) {
+        talent.profilePath = alloc.profilePath;
+      }
+
+      talent.totalPercentage += alloc.percentage;
+      talent.totalAmount += alloc.amount;
+      talent.totalVotes += 1;
+
+      // Track individual filmography credit
+      const filmKey = sub.movieTitle.toLowerCase();
+      let filmRecord = talent.filmMap.get(filmKey);
+      if (!filmRecord) {
+        filmRecord = {
+          movieId: sub.movieId,
+          movieTitle: sub.movieTitle,
+          sumPercentage: 0,
+          voteCount: 0
+        };
+        talent.filmMap.set(filmKey, filmRecord);
+      }
+      filmRecord.sumPercentage += alloc.percentage;
+      filmRecord.voteCount += 1;
+    });
+  });
+
+  const result: LeaderboardEntry[] = [];
+
+  talentMap.forEach((talent) => {
+    if (talent.totalVotes === 0) return;
+
+    // Pure arithmetic averages:
+    const avgPercentage = Number((talent.totalPercentage / talent.totalVotes).toFixed(1));
+    const avgAmountRupees = Math.round(talent.totalAmount / talent.totalVotes);
+
+    const filmography: FilmographyCredit[] = Array.from(talent.filmMap.values()).map((f) => ({
+      movieId: f.movieId,
+      movieTitle: f.movieTitle,
+      avgPercentage: Number((f.sumPercentage / f.voteCount).toFixed(1)),
+      voteCount: f.voteCount
+    })).sort((a, b) => b.avgPercentage - a.avgPercentage);
+
+    const topMovieTitle = filmography[0]?.movieTitle || 'Featured Film';
+
+    result.push({
+      id: talent.id,
+      tmdbPersonId: talent.tmdbPersonId,
+      name: talent.name,
+      role: talent.role,
+      profilePath: talent.profilePath,
+      totalVotes: talent.totalVotes,
+      avgPercentage,
+      avgAmountRupees,
+      topMovieTitle,
+      filmsCount: filmography.length,
+      filmography
+    });
+  });
+
+  return result.sort((a, b) => b.avgPercentage - a.avgPercentage || b.avgAmountRupees - a.avgAmountRupees);
+}
+
+/**
+ * PURE BUSINESS LOGIC FOR MULTI-MOVIE WORTH-IT ROI:
+ * Aggregates audience satisfaction across all films with 100% pure arithmetic.
+ */
+export function calculateGlobalMovieROIs(submissions: TicketSplitSubmission[]): MovieROIEntry[] {
+  const movieMap = new Map<number, {
+    movieId: number;
+    title: string;
+    posterPath: string | null;
+    totalVotes: number;
+    sumAudienceSat: number;
+    allocationsSum: Map<string, { name: string; role: string; sumPct: number }>;
+  }>();
+
+  submissions.forEach((sub) => {
+    let movie = movieMap.get(sub.movieId);
+    if (!movie) {
+      movie = {
+        movieId: sub.movieId,
+        title: sub.movieTitle,
+        posterPath: sub.moviePoster || null,
+        totalVotes: 0,
+        sumAudienceSat: 0,
+        allocationsSum: new Map()
+      };
+      movieMap.set(sub.movieId, movie);
+    }
+
+    if (!movie.posterPath && sub.moviePoster) {
+      movie.posterPath = sub.moviePoster;
+    }
+
+    movie.totalVotes += 1;
+
+    sub.allocations.forEach((alloc) => {
+      if (alloc.role.toLowerCase().includes('audience') || alloc.role.toLowerCase().includes('experience')) {
+        movie!.sumAudienceSat += alloc.percentage;
+      } else {
+        const key = normalizeName(alloc.name);
+        const existing = movie!.allocationsSum.get(key) || { name: key, role: alloc.role, sumPct: 0 };
+        existing.sumPct += alloc.percentage;
+        movie!.allocationsSum.set(key, existing);
+      }
+    });
+  });
+
+  const result: MovieROIEntry[] = [];
+
+  movieMap.forEach((movie) => {
+    if (movie.totalVotes === 0) return;
+
+    // Pure arithmetic average satisfaction
+    const avgAudienceSatisfaction = Number((movie.sumAudienceSat / movie.totalVotes).toFixed(1));
+    const valueScore = Number(Math.min(9.9, Math.max(6.0, 7.0 + avgAudienceSatisfaction / 12)).toFixed(1));
+
+    // Determine dominant contributor for this movie
+    const topContrib = Array.from(movie.allocationsSum.values())
+      .map((item) => ({ ...item, avgPct: Number((item.sumPct / movie.totalVotes).toFixed(1)) }))
+      .sort((a, b) => b.avgPct - a.avgPct)[0];
+
+    let dominantRole = "Cinematic Collaboration";
+    if (topContrib) {
+      if (topContrib.role === 'Director') {
+        dominantRole = `Director Led (${topContrib.name} ${topContrib.avgPct}%)`;
+      } else if (topContrib.role === 'Actor') {
+        dominantRole = `Star Driven (${topContrib.name} ${topContrib.avgPct}%)`;
+      } else if (topContrib.role === 'Music') {
+        dominantRole = `Audiovisual Spectacle (${topContrib.name} ${topContrib.avgPct}%)`;
+      } else {
+        dominantRole = `${topContrib.name} (${topContrib.avgPct}%)`;
+      }
+    }
+
+    result.push({
+      movieId: movie.movieId,
+      title: movie.title,
+      posterPath: movie.posterPath,
+      totalVotes: movie.totalVotes,
+      avgAudienceSatisfaction,
+      dominantRole,
+      valueScore
+    });
+  });
+
+  return result.sort((a, b) => b.valueScore - a.valueScore || b.avgAudienceSatisfaction - a.avgAudienceSatisfaction);
+}
+
 export function getStoredLeaderboard(): LeaderboardEntry[] {
-  if (typeof window === 'undefined') return INITIAL_LEADERBOARD;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.LEADERBOARD);
-    return raw ? JSON.parse(raw) : INITIAL_LEADERBOARD;
-  } catch {
-    return INITIAL_LEADERBOARD;
-  }
+  const submissions = getStoredSubmissions();
+  if (submissions.length === 0) return INITIAL_LEADERBOARD;
+  return calculateGlobalLeaderboard(submissions);
 }
 
 export function getStoredMovieROIs(): MovieROIEntry[] {
-  if (typeof window === 'undefined') return INITIAL_MOVIE_ROIS;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.MOVIE_ROIS);
-    return raw ? JSON.parse(raw) : INITIAL_MOVIE_ROIS;
-  } catch {
-    return INITIAL_MOVIE_ROIS;
-  }
+  const submissions = getStoredSubmissions();
+  if (submissions.length === 0) return INITIAL_MOVIE_ROIS;
+  return calculateGlobalMovieROIs(submissions);
 }
 
 /**
@@ -352,7 +863,7 @@ export function saveTicketSplit(submission: TicketSplitSubmission): { isUpdate: 
     localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(updatedList));
 
     // Update Global Leaderboard Aggregates
-    updateGlobalLeaderboard(submission, isUpdate);
+    updateGlobalLeaderboard();
 
     return { isUpdate };
   } catch (err) {
@@ -362,74 +873,15 @@ export function saveTicketSplit(submission: TicketSplitSubmission): { isUpdate: 
 }
 
 /**
- * Updates Global Multi-Movie Leaderboard
+ * Updates Global Multi-Movie Leaderboard caches using 100% pure arithmetic
  */
-function updateGlobalLeaderboard(submission: TicketSplitSubmission, isUpdate: boolean) {
-  const leaderboard = getStoredLeaderboard();
-  
-  submission.allocations.forEach((alloc) => {
-    if (alloc.role === 'Audience / Experience' || alloc.role === 'Custom') return;
-
-    const talentRole = (['Director', 'Actor', 'Music', 'Producer'].includes(alloc.role) 
-      ? alloc.role 
-      : 'Actor') as 'Director' | 'Actor' | 'Music' | 'Producer';
-      
-    const cleanName = normalizeName(alloc.name);
-    const existingEntry = leaderboard.find((l) => l.name.toLowerCase() === cleanName.toLowerCase());
-
-    if (existingEntry) {
-      if (!isUpdate) {
-        const newTotal = existingEntry.totalVotes + 1;
-        existingEntry.avgPercentage = Number(
-          ((existingEntry.avgPercentage * existingEntry.totalVotes + alloc.percentage) / newTotal).toFixed(1)
-        );
-        existingEntry.avgAmountRupees = Number(
-          ((existingEntry.avgAmountRupees * existingEntry.totalVotes + alloc.amount) / newTotal).toFixed(1)
-        );
-        existingEntry.totalVotes = newTotal;
-
-        if (!existingEntry.filmography) existingEntry.filmography = [];
-        const filmCredit = existingEntry.filmography.find(
-          (f) => f.movieTitle.toLowerCase() === submission.movieTitle.toLowerCase()
-        );
-        if (filmCredit) {
-          filmCredit.voteCount += 1;
-          filmCredit.avgPercentage = Number(((filmCredit.avgPercentage + alloc.percentage) / 2).toFixed(1));
-        } else {
-          existingEntry.filmography.push({
-            movieTitle: submission.movieTitle,
-            movieId: submission.movieId,
-            avgPercentage: alloc.percentage,
-            voteCount: 1
-          });
-          existingEntry.filmsCount = existingEntry.filmography.length;
-        }
-      }
-    } else {
-      leaderboard.push({
-        id: `talent-${Date.now()}-${Math.random()}`,
-        tmdbPersonId: alloc.tmdbId,
-        name: cleanName,
-        role: talentRole,
-        profilePath: alloc.profilePath,
-        totalVotes: 1,
-        avgPercentage: alloc.percentage,
-        avgAmountRupees: alloc.amount,
-        topMovieTitle: submission.movieTitle,
-        filmsCount: 1,
-        filmography: [
-          {
-            movieTitle: submission.movieTitle,
-            movieId: submission.movieId,
-            avgPercentage: alloc.percentage,
-            voteCount: 1
-          }
-        ]
-      });
-    }
-  });
-
+function updateGlobalLeaderboard() {
+  if (typeof window === 'undefined') return;
+  const submissions = getStoredSubmissions();
+  const leaderboard = calculateGlobalLeaderboard(submissions);
+  const rois = calculateGlobalMovieROIs(submissions);
   localStorage.setItem(STORAGE_KEYS.LEADERBOARD, JSON.stringify(leaderboard));
+  localStorage.setItem(STORAGE_KEYS.MOVIE_ROIS, JSON.stringify(rois));
 }
 
 /**
@@ -600,9 +1052,7 @@ export function simulateUserScenario(
   localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify([...newSubmissions, ...existing]));
 
   // Update global leaderboard
-  newSubmissions.forEach((sub) => {
-    updateGlobalLeaderboard(sub, false);
-  });
+  updateGlobalLeaderboard();
 }
 
 /**
@@ -612,4 +1062,149 @@ export function resetMovieBallots(movieId: number): void {
   if (typeof window === 'undefined') return;
   const remaining = getStoredSubmissions().filter((s) => s.movieId !== movieId);
   localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(remaining));
+  updateGlobalLeaderboard();
+}
+
+/**
+ * SIMULATES MULTI-MOVIE USER VOTES WITH PURE ARITHMETIC:
+ * Simulates verified voter splits across 4 major films:
+ * 1. Oppenheimer (6 ballots, Nolan heavy -> ~25.3% avg)
+ * 2. RRR (6 ballots, Rajamouli heavy -> ~38.5% avg)
+ * 3. Dune: Part Two (6 ballots, Denis heavy -> ~34.0% avg)
+ * 4. Jawan (6 ballots, SRK hero heavy -> ~42.5% avg)
+ * Immediately updates the Global Multi-Movie Leaderboard across all categories!
+ */
+export function simulateMultiMovieScenario(): void {
+  if (typeof window === 'undefined') return;
+
+  const ticketPrice = 150;
+
+  // 1. Oppenheimer Ballots (Nolan Director Heavy)
+  const oppenheimerVoters = [
+    { label: 'Oppenheimer #1 (Even)', cuts: { 'dir-525': 25, 'actor-2037': 25, 'actor-3223': 25, 'actor-5081': 25, 'music-64670': 25, 'exp-872585': 25 } },
+    { label: 'Oppenheimer #2 (Director Heavy)', cuts: { 'dir-525': 75, 'actor-2037': 15, 'actor-3223': 15, 'actor-5081': 15, 'music-64670': 15, 'exp-872585': 15 } },
+    { label: 'Oppenheimer #3 (Director Heavy)', cuts: { 'dir-525': 80, 'actor-2037': 14, 'actor-3223': 14, 'actor-5081': 14, 'music-64670': 14, 'exp-872585': 14 } },
+    { label: 'Oppenheimer #4 (Hero Heavy)', cuts: { 'actor-2037': 70, 'dir-525': 16, 'actor-3223': 16, 'actor-5081': 16, 'music-64670': 16, 'exp-872585': 16 } },
+    { label: 'Oppenheimer #5 (Villain Heavy)', cuts: { 'actor-3223': 70, 'dir-525': 16, 'actor-2037': 16, 'actor-5081': 16, 'music-64670': 16, 'exp-872585': 16 } },
+    { label: 'Oppenheimer #6 (Heroine Heavy)', cuts: { 'actor-5081': 70, 'dir-525': 16, 'actor-2037': 16, 'actor-3223': 16, 'music-64670': 16, 'exp-872585': 16 } }
+  ];
+
+  const oppSubs: TicketSplitSubmission[] = oppenheimerVoters.map((v, i) => ({
+    id: `sim-multi-opp-${i + 1}-${Date.now()}`,
+    userKey: `sim_user_opp_${i + 1}`,
+    movieId: 872585,
+    movieTitle: 'Oppenheimer',
+    moviePoster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+    ticketPrice,
+    currency: 'INR',
+    allocations: [
+      { id: 'dir-525', tmdbId: 525, name: 'Christopher Nolan', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xuAIuYSmsUzKlUMBFGVZaWsY3DZ.jpg', amount: v.cuts['dir-525'], percentage: Number(((v.cuts['dir-525'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'actor-2037', tmdbId: 2037, name: 'Cillian Murphy (J. Robert Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/2lKs67r7FI4bPu0AXxMUJZxmUXn.jpg', amount: v.cuts['actor-2037'], percentage: Number(((v.cuts['actor-2037'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'actor-3223', tmdbId: 3223, name: 'Robert Downey Jr. (Lewis Strauss)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5qHNjhtjMD4YWH3fq0lZMBv9779.jpg', amount: v.cuts['actor-3223'], percentage: Number(((v.cuts['actor-3223'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'actor-5081', tmdbId: 5081, name: 'Emily Blunt (Kitty Oppenheimer)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/nPJXaRMVUvgmn2SY8yQ65Z0aNfL.jpg', amount: v.cuts['actor-5081'], percentage: Number(((v.cuts['actor-5081'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'music-64670', tmdbId: 64670, name: 'Ludwig Göransson', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/5c1kS017W4hT96U3yB6P9YtU5tU.jpg', amount: v.cuts['music-64670'], percentage: Number(((v.cuts['music-64670'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'exp-872585', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: v.cuts['exp-872585'], percentage: Number(((v.cuts['exp-872585'] / ticketPrice) * 100).toFixed(1)) }
+    ],
+    verdict: v.label,
+    createdAt: new Date(Date.now() - (24 - i) * 60000).toISOString()
+  }));
+
+  // 2. RRR Ballots (Rajamouli Director Dominant)
+  const rrrVoters = [
+    { label: 'RRR #1 (Rajamouli Masterclass)', cuts: { 'dir-147021': 80, 'actor-148037': 25, 'actor-124314': 25, 'music-225318': 10, 'exp-579974': 10 } },
+    { label: 'RRR #2 (Rajamouli Vision)', cuts: { 'dir-147021': 75, 'actor-148037': 30, 'actor-124314': 25, 'music-225318': 10, 'exp-579974': 10 } },
+    { label: 'RRR #3 (Rajamouli Heavy)', cuts: { 'dir-147021': 85, 'actor-148037': 20, 'actor-124314': 25, 'music-225318': 10, 'exp-579974': 10 } },
+    { label: 'RRR #4 (Action Hero Led)', cuts: { 'dir-147021': 35, 'actor-148037': 55, 'actor-124314': 40, 'music-225318': 10, 'exp-579974': 10 } },
+    { label: 'RRR #5 (Action Hero Led)', cuts: { 'dir-147021': 35, 'actor-148037': 40, 'actor-124314': 55, 'music-225318': 10, 'exp-579974': 10 } },
+    { label: 'RRR #6 (Music & Dance Focus)', cuts: { 'dir-147021': 35, 'actor-148037': 30, 'actor-124314': 30, 'music-225318': 45, 'exp-579974': 10 } }
+  ];
+
+  const rrrSubs: TicketSplitSubmission[] = rrrVoters.map((v, i) => ({
+    id: `sim-multi-rrr-${i + 1}-${Date.now()}`,
+    userKey: `sim_user_rrr_${i + 1}`,
+    movieId: 579974,
+    movieTitle: 'RRR',
+    moviePoster: 'https://image.tmdb.org/t/p/w500/nEufeZlyAOLqO2brrs0ye2fq0SZ.jpg',
+    ticketPrice,
+    currency: 'INR',
+    allocations: [
+      { id: 'dir-147021', tmdbId: 147021, name: 'S. S. Rajamouli', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/qPskSZxvoYflC8Bye4tGNBSroy5.jpg', amount: v.cuts['dir-147021'], percentage: Number(((v.cuts['dir-147021'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'actor-148037', tmdbId: 148037, name: 'N.T. Rama Rao Jr. (Komaram Bheem)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/5ycQgZ3SPUa12bq0yn1jpToBq9X.jpg', amount: v.cuts['actor-148037'], percentage: Number(((v.cuts['actor-148037'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'actor-124314', tmdbId: 124314, name: 'Ram Charan (Alluri Sitarama Raju)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: v.cuts['actor-124314'], percentage: Number(((v.cuts['actor-124314'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'music-225318', tmdbId: 225318, name: 'M. M. Keeravani', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/r0f7RTGIkG0ZBaQViIKrE1g82Ec.jpg', amount: v.cuts['music-225318'], percentage: Number(((v.cuts['music-225318'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'exp-579974', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: v.cuts['exp-579974'], percentage: Number(((v.cuts['exp-579974'] / ticketPrice) * 100).toFixed(1)) }
+    ],
+    verdict: v.label,
+    createdAt: new Date(Date.now() - (18 - i) * 60000).toISOString()
+  }));
+
+  // 3. Dune: Part Two Ballots (Denis + Hans Zimmer Heavy)
+  const duneVoters = [
+    { label: 'Dune #1 (Audiovisual Wonder)', cuts: { 'dir-137427': 55, 'actor-1190668': 35, 'music-947': 40, 'exp-693134': 20 } },
+    { label: 'Dune #2 (Denis Direction)', cuts: { 'dir-137427': 60, 'actor-1190668': 35, 'music-947': 35, 'exp-693134': 20 } },
+    { label: 'Dune #3 (Zimmer Score)', cuts: { 'dir-137427': 45, 'actor-1190668': 35, 'music-947': 50, 'exp-693134': 20 } },
+    { label: 'Dune #4 (Audiovisual Wonder)', cuts: { 'dir-137427': 55, 'actor-1190668': 35, 'music-947': 40, 'exp-693134': 20 } },
+    { label: 'Dune #5 (Denis Direction)', cuts: { 'dir-137427': 60, 'actor-1190668': 30, 'music-947': 40, 'exp-693134': 20 } },
+    { label: 'Dune #6 (Zimmer Score)', cuts: { 'dir-137427': 45, 'actor-1190668': 35, 'music-947': 50, 'exp-693134': 20 } }
+  ];
+
+  const duneSubs: TicketSplitSubmission[] = duneVoters.map((v, i) => ({
+    id: `sim-multi-dune-${i + 1}-${Date.now()}`,
+    userKey: `sim_user_dune_${i + 1}`,
+    movieId: 693134,
+    movieTitle: 'Dune: Part Two',
+    moviePoster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
+    ticketPrice,
+    currency: 'INR',
+    allocations: [
+      { id: 'dir-137427', tmdbId: 137427, name: 'Denis Villeneuve', role: 'Director', profilePath: 'https://image.tmdb.org/t/p/w185/xzQYqb4nR8xT7Zdw5itbEL9K3fd.jpg', amount: v.cuts['dir-137427'], percentage: Number(((v.cuts['dir-137427'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'actor-1190668', tmdbId: 1190668, name: 'Timothée Chalamet (Paul Atreides)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/BE2sdjpgsa2rNTFa66f7upkaOP.jpg', amount: v.cuts['actor-1190668'], percentage: Number(((v.cuts['actor-1190668'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'music-947', tmdbId: 947, name: 'Hans Zimmer', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/tpQnDeHY15szIXvpnhlprufz4d.jpg', amount: v.cuts['music-947'], percentage: Number(((v.cuts['music-947'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'exp-693134', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: v.cuts['exp-693134'], percentage: Number(((v.cuts['exp-693134'] / ticketPrice) * 100).toFixed(1)) }
+    ],
+    verdict: v.label,
+    createdAt: new Date(Date.now() - (12 - i) * 60000).toISOString()
+  }));
+
+  // 4. Jawan Ballots (Shah Rukh Khan Star Dominance)
+  const jawanVoters = [
+    { label: 'Jawan #1 (King Khan Supremacy)', cuts: { 'actor-35742': 85, 'dir-1259367': 25, 'music-1081464': 30, 'exp-872906': 10 } },
+    { label: 'Jawan #2 (SRK Stardom)', cuts: { 'actor-35742': 80, 'dir-1259367': 30, 'music-1081464': 30, 'exp-872906': 10 } },
+    { label: 'Jawan #3 (King Khan Supremacy)', cuts: { 'actor-35742': 85, 'dir-1259367': 25, 'music-1081464': 30, 'exp-872906': 10 } },
+    { label: 'Jawan #4 (SRK Stardom)', cuts: { 'actor-35742': 80, 'dir-1259367': 30, 'music-1081464': 30, 'exp-872906': 10 } },
+    { label: 'Jawan #5 (King Khan Supremacy)', cuts: { 'actor-35742': 85, 'dir-1259367': 25, 'music-1081464': 30, 'exp-872906': 10 } },
+    { label: 'Jawan #6 (Anirudh BGM + SRK)', cuts: { 'actor-35742': 75, 'dir-1259367': 25, 'music-1081464': 40, 'exp-872906': 10 } }
+  ];
+
+  const jawanSubs: TicketSplitSubmission[] = jawanVoters.map((v, i) => ({
+    id: `sim-multi-jawan-${i + 1}-${Date.now()}`,
+    userKey: `sim_user_jawan_${i + 1}`,
+    movieId: 872906,
+    movieTitle: 'Jawan',
+    moviePoster: 'https://image.tmdb.org/t/p/w500/jFt1g94utjj2YKQioVJTYWzOuvZ.jpg',
+    ticketPrice,
+    currency: 'INR',
+    allocations: [
+      { id: 'actor-35742', tmdbId: 35742, name: 'Shah Rukh Khan (Vikram Rathore / Azad)', role: 'Actor', profilePath: 'https://image.tmdb.org/t/p/w185/tKeQhSyXyzlzxNtxFq24iIvzXrC.jpg', amount: v.cuts['actor-35742'], percentage: Number(((v.cuts['actor-35742'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'dir-1259367', tmdbId: 1259367, name: 'Atlee', role: 'Director', profilePath: null, amount: v.cuts['dir-1259367'], percentage: Number(((v.cuts['dir-1259367'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'music-1081464', tmdbId: 1081464, name: 'Anirudh Ravichander', role: 'Music', profilePath: 'https://image.tmdb.org/t/p/w185/xKvlrZpRaXkm2K2ZiXpqgrEedUU.jpg', amount: v.cuts['music-1081464'], percentage: Number(((v.cuts['music-1081464'] / ticketPrice) * 100).toFixed(1)) },
+      { id: 'exp-872906', name: 'Popcorn & Audience Experience', role: 'Audience / Experience', profilePath: null, amount: v.cuts['exp-872906'], percentage: Number(((v.cuts['exp-872906'] / ticketPrice) * 100).toFixed(1)) }
+    ],
+    verdict: v.label,
+    createdAt: new Date(Date.now() - (6 - i) * 60000).toISOString()
+  }));
+
+  const allSims = [...oppSubs, ...rrrSubs, ...duneSubs, ...jawanSubs];
+  localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(allSims));
+  updateGlobalLeaderboard();
+}
+
+/**
+ * Resets all ballots and leaderboards across all movies to clean initial baseline
+ */
+export function resetAllSubmissionsAndLeaderboards(): void {
+  if (typeof window === 'undefined') return;
+  const seed = generateStarterSeedSubmissions();
+  localStorage.setItem(STORAGE_KEYS.SUBMISSIONS, JSON.stringify(seed));
+  updateGlobalLeaderboard();
 }
