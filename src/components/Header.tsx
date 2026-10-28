@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Ticket, Trophy, Sparkles, Film } from 'lucide-react';
+import { Ticket, Trophy, Sparkles, Film, BarChart3 } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'split' | 'leaderboard' | 'receipts';
-  onTabChange: (tab: 'split' | 'leaderboard' | 'receipts') => void;
+  activeTab: 'split' | 'census' | 'leaderboard' | 'receipts';
+  onTabChange: (tab: 'split' | 'census' | 'leaderboard' | 'receipts') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange }) => {
@@ -47,6 +47,18 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onTabChange }) => {
           >
             <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <span>Valuate</span>
+          </button>
+
+          <button
+            onClick={() => onTabChange('census')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg font-medium transition-all ${
+              activeTab === 'census'
+                ? 'bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-md shadow-rose-500/20 font-bold'
+                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span>Film Census</span>
           </button>
 
           <button

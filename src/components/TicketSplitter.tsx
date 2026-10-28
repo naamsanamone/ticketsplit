@@ -19,20 +19,23 @@ import {
   generateVerdict, 
   saveTicketSplit, 
   getUserKey, 
-  getUserSubmissionForMovie, 
-  getMovieCommunityStats 
+  getUserSubmissionForMovie 
 } from '../lib/store';
 import { Avatar } from './Avatar';
-import { MovieCensusHub } from './MovieCensusHub';
 
 interface TicketSplitterProps {
   movie: Movie;
   onSplitCompleted: (submission: TicketSplitSubmission) => void;
+  onViewCensus?: () => void;
 }
 
 const PRESET_PRICES = [100, 150, 200, 300, 500];
 
-export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCompleted }) => {
+export const TicketSplitter: React.FC<TicketSplitterProps> = ({ 
+  movie, 
+  onSplitCompleted,
+  onViewCensus 
+}) => {
   const [ticketPrice, setTicketPrice] = useState<number>(150);
   const [customPriceInput, setCustomPriceInput] = useState<string>('150');
   const [contributors, setContributors] = useState<Contributor[]>([]);
@@ -42,7 +45,6 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
 
   // Community & user validation state
   const [existingUserSubmission, setExistingUserSubmission] = useState<TicketSplitSubmission | null>(null);
-  const [communityStats, setCommunityStats] = useState(getMovieCommunityStats(movie.id));
 
   // Modals / Drawers for adding people
   const [showAddCreditModal, setShowAddCreditModal] = useState<boolean>(false);
@@ -68,7 +70,6 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
           // Check if this user already split a ticket for this movie
           const prevSub = getUserSubmissionForMovie(movie.id);
           setExistingUserSubmission(prevSub);
-          setCommunityStats(getMovieCommunityStats(movie.id, initial));
         }
       } catch (err) {
         console.error("Error loading movie:", err);
@@ -244,14 +245,7 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
-      {/* 1. Single-Movie Census Hub & In-Movie Leaderboard */}
-      <MovieCensusHub 
-        stats={communityStats} 
-        movieTitle={movie.title} 
-        userAllocations={contributors} 
-      />
-
-      {/* 2. Voter Validation Notice (1-User-1-Ticket) */}
+      {/* 1. Voter Validation Notice (1-User-1-Ticket) */}
       {existingUserSubmission && (
         <div className="p-3 bg-blue-950/30 border border-blue-500/30 rounded-2xl flex items-center gap-2.5 text-xs text-blue-200">
           <Info className="w-4 h-4 text-blue-400 shrink-0" />
@@ -261,7 +255,7 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
         </div>
       )}
 
-      {/* 3. Movie Header & Ticket Price Input */}
+      {/* 2. Movie Header & Ticket Price Input */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
         {movie.poster_path ? (
           <img
@@ -275,8 +269,18 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
           </div>
         )}
         <div className="flex-1 text-center sm:text-left">
-          <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] sm:text-[11px] font-semibold border border-amber-500/20 mb-1">
-            VALUATE TICKET
+          <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap mb-1">
+            <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] sm:text-[11px] font-semibold border border-amber-500/20">
+              VALUATE TICKET
+            </div>
+            {onViewCensus && (
+              <button
+                onClick={onViewCensus}
+                className="text-[10px] sm:text-[11px] text-amber-400 hover:text-amber-300 underline font-semibold transition-colors"
+              >
+                View Film Census & Leaderboard →
+              </button>
+            )}
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">{movie.title}</h2>
           <p className="text-[11px] sm:text-xs text-zinc-400 mt-1 line-clamp-2">{movie.overview}</p>

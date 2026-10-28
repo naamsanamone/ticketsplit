@@ -4,15 +4,17 @@ import React, { useState } from 'react';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { TicketSplitter } from '@/components/TicketSplitter';
+import { MovieCensusHub } from '@/components/MovieCensusHub';
 import { ReceiptCard } from '@/components/ReceiptCard';
 import { LeaderboardView } from '@/components/LeaderboardView';
 import { MyReceiptsView } from '@/components/MyReceiptsView';
 import { Movie, TicketSplitSubmission } from '@/types';
 import { MOCK_MOVIES } from '@/lib/mockData';
-import { Sparkles } from 'lucide-react';
+import { getMovieCommunityStats } from '@/lib/store';
+import { Sparkles, BarChart3 } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'split' | 'leaderboard' | 'receipts'>('split');
+  const [activeTab, setActiveTab] = useState<'split' | 'census' | 'leaderboard' | 'receipts'>('split');
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(MOCK_MOVIES[872585].movie); // Default to Oppenheimer
   const [completedSubmission, setCompletedSubmission] = useState<TicketSplitSubmission | null>(null);
 
@@ -28,7 +30,7 @@ export default function Home() {
 
       {/* Main Content Area */}
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-12">
-        {/* TAB 1: VALUATE & SPLIT */}
+        {/* TAB 1: VALUATE & SPLIT (Clean, Direct Home View) */}
         {activeTab === 'split' && (
           <div className="space-y-8">
             {/* Hero Header */}
@@ -72,6 +74,7 @@ export default function Home() {
                 key={selectedMovie.id} 
                 movie={selectedMovie} 
                 onSplitCompleted={(sub) => setCompletedSubmission(sub)} 
+                onViewCensus={() => setActiveTab('census')}
               />
             ) : (
               /* Fallback Movie Grid if no movie selected */
@@ -98,14 +101,47 @@ export default function Home() {
           </div>
         )}
 
-        {/* TAB 2: LEADERBOARD */}
+        {/* TAB 2: FILM CENSUS (Dedicated Tab for Single-Movie Audience Census & In-Movie Leaderboard) */}
+        {activeTab === 'census' && (
+          <div className="space-y-6 pt-2">
+            <div className="text-center space-y-2 max-w-xl mx-auto">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+                <BarChart3 className="w-3.5 h-3.5" />
+                <span>FILM AUDIENCE CENSUS</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white">Crowd Ticket Consensus Hub</h2>
+              <p className="text-xs sm:text-sm text-zinc-400">
+                Inspect crowdsourced ticket allocations, Value-for-Money ratings, and the in-movie leaderboard for any film.
+              </p>
+            </div>
+
+            {/* Movie Switcher */}
+            <SearchBar 
+              onSelectMovie={handleMovieSelect} 
+              selectedMovie={selectedMovie} 
+            />
+
+            {/* Dedicated Film Census Hub */}
+            {selectedMovie && (
+              <div className="pt-2">
+                <MovieCensusHub 
+                  stats={getMovieCommunityStats(selectedMovie.id)} 
+                  movieTitle={selectedMovie.title} 
+                  userAllocations={completedSubmission?.movieId === selectedMovie.id ? completedSubmission.allocations : undefined} 
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: GLOBAL MULTI-MOVIE LEADERBOARD */}
         {activeTab === 'leaderboard' && (
           <div className="pt-2">
             <LeaderboardView />
           </div>
         )}
 
-        {/* TAB 3: MY RECEIPTS */}
+        {/* TAB 4: MY RECEIPTS */}
         {activeTab === 'receipts' && (
           <div className="pt-2">
             <MyReceiptsView onStartValuating={() => setActiveTab('split')} />
