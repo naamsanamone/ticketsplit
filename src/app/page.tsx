@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { SearchBar } from '@/components/SearchBar';
 import { TicketSplitter } from '@/components/TicketSplitter';
@@ -8,9 +8,11 @@ import { MovieCensusHub } from '@/components/MovieCensusHub';
 import { ReceiptCard } from '@/components/ReceiptCard';
 import { LeaderboardView } from '@/components/LeaderboardView';
 import { MyReceiptsView } from '@/components/MyReceiptsView';
+import { AuthModal } from '@/components/AuthModal';
 import { Movie, TicketSplitSubmission } from '@/types';
 import { MOCK_MOVIES } from '@/lib/mockData';
 import { getMovieCommunityStats } from '@/lib/store';
+import { getStoredVoter, logoutVoter, VoterProfile } from '@/lib/auth';
 import { Sparkles, BarChart3 } from 'lucide-react';
 
 export default function Home() {
@@ -18,6 +20,17 @@ export default function Home() {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(MOCK_MOVIES[872585].movie); // Default to Oppenheimer
   const [completedSubmission, setCompletedSubmission] = useState<TicketSplitSubmission | null>(null);
   const [censusKey, setCensusKey] = useState<number>(0);
+  const [voter, setVoter] = useState<VoterProfile | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    setVoter(getStoredVoter());
+  }, []);
+
+  const handleLogout = () => {
+    logoutVoter();
+    setVoter(null);
+  };
 
   const handleMovieSelect = (movie: Movie) => {
     setSelectedMovie(movie);
@@ -26,8 +39,25 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
-      {/* Sticky Header */}
-      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Sticky Header with Voter Pass */}
+      <Header 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        voter={voter}
+        onOpenAuth={() => setShowAuthModal(true)}
+        onLogout={handleLogout}
+      />
+
+      {/* Zero-Cost Voter Verification Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onVerified={(verifiedVoter) => {
+          setVoter(verifiedVoter);
+          setShowAuthModal(false);
+        }}
+        actionReason={selectedMovie ? `to cast your ballot for ${selectedMovie.title}` : undefined}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-12">
@@ -76,6 +106,7 @@ export default function Home() {
                 movie={selectedMovie} 
                 onSplitCompleted={(sub) => setCompletedSubmission(sub)} 
                 onViewCensus={() => setActiveTab('census')}
+                onRequireAuth={() => setShowAuthModal(true)}
               />
             ) : (
               /* Fallback Movie Grid if no movie selected */

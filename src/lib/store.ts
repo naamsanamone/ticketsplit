@@ -10,6 +10,7 @@ import {
   FilmographyCredit
 } from '../types';
 import { INITIAL_LEADERBOARD, INITIAL_MOVIE_ROIS, MOCK_MOVIES } from './mockData';
+import { getStoredVoter } from './auth';
 
 const STORAGE_KEYS = {
   USER_KEY: 'ticketsplit_user_key',
@@ -20,6 +21,11 @@ const STORAGE_KEYS = {
 
 export function getUserKey(): string {
   if (typeof window === 'undefined') return 'user_server';
+  // Use verified voter UID if logged in via Phone OTP, Email, or Google
+  const voter = getStoredVoter();
+  if (voter && voter.isVerified && voter.uid) {
+    return voter.uid;
+  }
   let key = localStorage.getItem(STORAGE_KEYS.USER_KEY);
   if (!key) {
     key = `voter_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

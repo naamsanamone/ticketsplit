@@ -9,9 +9,10 @@ import {
   Trash2, 
   Plus, 
   Film, 
-  Info,
-  Sliders,
-  X
+  Info, 
+  Sliders, 
+  X,
+  ShieldCheck
 } from 'lucide-react';
 import { Movie, Contributor, TicketSplitSubmission, CastMember, CrewMember } from '../types';
 import { buildInitialContributors } from '../lib/tmdb';
@@ -21,12 +22,14 @@ import {
   getUserKey, 
   getUserSubmissionForMovie 
 } from '../lib/store';
+import { isVoterVerified } from '../lib/auth';
 import { Avatar } from './Avatar';
 
 interface TicketSplitterProps {
   movie: Movie;
   onSplitCompleted: (submission: TicketSplitSubmission) => void;
   onViewCensus?: () => void;
+  onRequireAuth?: () => void;
 }
 
 const PRESET_PRICES = [100, 150, 200, 300, 500];
@@ -34,7 +37,8 @@ const PRESET_PRICES = [100, 150, 200, 300, 500];
 export const TicketSplitter: React.FC<TicketSplitterProps> = ({ 
   movie, 
   onSplitCompleted,
-  onViewCensus 
+  onViewCensus,
+  onRequireAuth
 }) => {
   const [ticketPrice, setTicketPrice] = useState<number>(150);
   const [customPriceInput, setCustomPriceInput] = useState<string>('150');
@@ -213,6 +217,13 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({
   // Submit split validating 1-user-1-ticket
   const handleSubmit = () => {
     if (!isPerfect) return;
+
+    if (!isVoterVerified()) {
+      if (onRequireAuth) {
+        onRequireAuth();
+        return;
+      }
+    }
 
     const verdict = generateVerdict(contributors);
     const userKey = getUserKey();
@@ -608,10 +619,22 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({
             : 'bg-zinc-800 text-zinc-500 cursor-not-allowed opacity-60'
         }`}
       >
-        <Sparkles className="w-5 h-5" />
-        <span>
-          {existingUserSubmission ? 'Update My Community Split' : 'Submit Split & Generate Ticket Receipt'}
-        </span>
+        {!isVoterVerified() ? (
+          <>
+            <ShieldCheck className="w-5 h-5 text-amber-300" />
+            <span>Verify Voter Pass & Cast Ballot</span>
+          </>
+        ) : existingUserSubmission ? (
+          <>
+            <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+            <span>Update My Verified Ballot (₹{ticketPrice})</span>
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-5 h-5 text-amber-300" />
+            <span>Cast Verified Ballot & Get Receipt</span>
+          </>
+        )}
       </button>
     </div>
   );
