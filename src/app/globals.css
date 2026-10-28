@@ -7,36 +7,42 @@
   --foreground: #f4f4f5;
 }
 
-body {
+html, body {
   color: var(--foreground);
   background: var(--background);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Custom styled range slider */
+/* Enhanced mobile touch sliders */
+input[type="range"] {
+  touch-action: pan-x;
+}
+
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #f59e0b;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
-  border: 2px solid #ffffff;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  border: 2.5px solid #ffffff;
   transition: transform 0.1s ease;
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.25);
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #f59e0b;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
-  border: 2px solid #ffffff;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+  border: 2.5px solid #ffffff;
 }

@@ -132,75 +132,75 @@ export const LeaderboardView: React.FC = () => {
       {/* Talent Rankings View */}
       {activeCategory !== 'Movies' ? (
         <div className="space-y-4">
-          {/* Top 3 Podium Cards */}
+          {/* Top 3 Podium Cards - Mobile Responsive */}
           {filteredTalent.length >= 3 && (
-            <div className="grid grid-cols-3 gap-3 pt-6 pb-2 items-end">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-3 pt-3 sm:pt-6 pb-2 items-end">
               {/* 2nd Place */}
-              <div className="bg-zinc-900/90 border border-zinc-800 rounded-3xl p-4 text-center space-y-2 flex flex-col items-center">
-                <div className="text-xl">🥈</div>
+              <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl sm:rounded-3xl p-2 sm:p-4 text-center space-y-1.5 sm:space-y-2 flex flex-col items-center">
+                <div className="text-base sm:text-xl">🥈</div>
                 <Avatar
                   src={filteredTalent[1].profilePath}
                   alt={filteredTalent[1].name}
                   role={filteredTalent[1].role}
-                  className="w-14 h-14"
+                  className="w-10 h-10 sm:w-14 sm:h-14"
                 />
                 <div className="w-full">
-                  <h4 className="font-bold text-xs sm:text-sm text-white truncate">
+                  <h4 className="font-bold text-[11px] sm:text-sm text-white truncate">
                     {filteredTalent[1].name}
                   </h4>
-                  <p className="text-[11px] text-zinc-400 truncate">
-                    {filteredTalent[1].filmsCount || 1} Films Valuated
+                  <p className="text-[9px] sm:text-[11px] text-zinc-400 truncate">
+                    {filteredTalent[1].filmsCount || 1} Films
                   </p>
                 </div>
-                <div className="bg-zinc-800 px-2.5 py-1 rounded-xl text-xs font-bold text-slate-300">
-                  {filteredTalent[1].avgPercentage}% Global Cut
+                <div className="bg-zinc-800 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold text-slate-300">
+                  {filteredTalent[1].avgPercentage}% Cut
                 </div>
               </div>
 
               {/* 1st Place */}
-              <div className="bg-gradient-to-b from-amber-500/20 to-zinc-900 border-2 border-amber-500/50 rounded-3xl p-5 text-center space-y-2 flex flex-col items-center shadow-xl shadow-amber-500/10 -translate-y-3">
-                <div className="text-2xl animate-bounce">👑</div>
+              <div className="bg-gradient-to-b from-amber-500/20 to-zinc-900 border-2 border-amber-500/50 rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 text-center space-y-1.5 sm:space-y-2 flex flex-col items-center shadow-xl shadow-amber-500/10 -translate-y-2 sm:-translate-y-3">
+                <div className="text-lg sm:text-2xl animate-bounce">👑</div>
                 <Avatar
                   src={filteredTalent[0].profilePath}
                   alt={filteredTalent[0].name}
                   role={filteredTalent[0].role}
-                  className="w-18 h-18 border-2 border-amber-400"
+                  className="w-13 h-13 sm:w-18 sm:h-18 border-2 border-amber-400"
                 />
                 <div className="w-full">
-                  <h4 className="font-black text-sm sm:text-base text-amber-300 truncate">
+                  <h4 className="font-black text-xs sm:text-base text-amber-300 truncate">
                     {filteredTalent[0].name}
                   </h4>
-                  <p className="text-xs text-zinc-400 truncate">
-                    {filteredTalent[0].filmsCount || 1} Films • {filteredTalent[0].totalVotes.toLocaleString()} Votes
+                  <p className="text-[10px] sm:text-xs text-zinc-400 truncate">
+                    {filteredTalent[0].filmsCount || 1} Films
                   </p>
                 </div>
-                <div className="bg-amber-500 text-zinc-950 px-3 py-1 rounded-xl text-xs font-black shadow">
-                  {filteredTalent[0].avgPercentage}% Global Cut
+                <div className="bg-amber-500 text-zinc-950 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black shadow">
+                  {filteredTalent[0].avgPercentage}% Cut
                 </div>
-                <span className="text-[10px] text-amber-400 font-semibold">
+                <span className="text-[9px] sm:text-[10px] text-amber-400 font-semibold hidden sm:inline">
                   Avg: ₹{filteredTalent[0].avgAmountRupees} / ticket
                 </span>
               </div>
 
               {/* 3rd Place */}
-              <div className="bg-zinc-900/90 border border-zinc-800 rounded-3xl p-4 text-center space-y-2 flex flex-col items-center">
-                <div className="text-xl">🥉</div>
+              <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl sm:rounded-3xl p-2 sm:p-4 text-center space-y-1.5 sm:space-y-2 flex flex-col items-center">
+                <div className="text-base sm:text-xl">🥉</div>
                 <Avatar
                   src={filteredTalent[2].profilePath}
                   alt={filteredTalent[2].name}
                   role={filteredTalent[2].role}
-                  className="w-14 h-14"
+                  className="w-10 h-10 sm:w-14 sm:h-14"
                 />
                 <div className="w-full">
-                  <h4 className="font-bold text-xs sm:text-sm text-white truncate">
+                  <h4 className="font-bold text-[11px] sm:text-sm text-white truncate">
                     {filteredTalent[2].name}
                   </h4>
-                  <p className="text-[11px] text-zinc-400 truncate">
-                    {filteredTalent[2].filmsCount || 1} Films Valuated
+                  <p className="text-[9px] sm:text-[11px] text-zinc-400 truncate">
+                    {filteredTalent[2].filmsCount || 1} Films
                   </p>
                 </div>
-                <div className="bg-zinc-800 px-2.5 py-1 rounded-xl text-xs font-bold text-amber-500">
-                  {filteredTalent[2].avgPercentage}% Global Cut
+                <div className="bg-zinc-800 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold text-amber-500">
+                  {filteredTalent[2].avgPercentage}% Cut
                 </div>
               </div>
             </div>

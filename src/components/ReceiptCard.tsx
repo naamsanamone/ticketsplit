@@ -55,33 +55,33 @@ export const ReceiptCard: React.FC<ReceiptCardProps> = ({ submission, onReset })
       {/* The Printable Ticket Card */}
       <div
         ref={receiptRef}
-        className="relative bg-zinc-900 border-2 border-zinc-700/80 rounded-3xl p-6 text-zinc-100 shadow-2xl overflow-hidden font-mono"
+        className="relative bg-zinc-900 border-2 border-zinc-700/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 text-zinc-100 shadow-2xl overflow-hidden font-mono"
       >
         {/* Ticket Header Graphic */}
-        <div className="flex items-center justify-between border-b-2 border-dashed border-zinc-700 pb-4 mb-4">
+        <div className="flex items-center justify-between border-b-2 border-dashed border-zinc-700 pb-3 sm:pb-4 mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
-            <Ticket className="w-6 h-6 text-amber-400 -rotate-12" />
+            <Ticket className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400 -rotate-12 shrink-0" />
             <div>
-              <h3 className="font-extrabold text-sm tracking-wider uppercase text-amber-400">
+              <h3 className="font-extrabold text-xs sm:text-sm tracking-wider uppercase text-amber-400">
                 CINEMA AUDIENCE VALUATION
               </h3>
-              <p className="text-[10px] text-zinc-400">OFFICIAL BOX OFFICE SPLIT RECEIPT</p>
+              <p className="text-[9px] sm:text-[10px] text-zinc-400">OFFICIAL BOX OFFICE SPLIT RECEIPT</p>
             </div>
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+          <span className="text-[9px] sm:text-[10px] px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700 shrink-0">
             TMDB VERIFIED
           </span>
         </div>
 
         {/* Movie Title & Ticket Price */}
-        <div className="mb-4 text-center">
-          <span className="text-xs text-zinc-400 uppercase tracking-widest">FILM TITLE</span>
-          <h2 className="text-xl font-black tracking-tight text-white mt-0.5">
+        <div className="mb-3 sm:mb-4 text-center">
+          <span className="text-[10px] sm:text-xs text-zinc-400 uppercase tracking-widest">FILM TITLE</span>
+          <h2 className="text-lg sm:text-xl font-black tracking-tight text-white mt-0.5">
             {submission.movieTitle}
           </h2>
           <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-semibold">
             <span>TICKET PRICE:</span>
-            <span className="font-bold text-sm">₹{submission.ticketPrice}</span>
+            <span className="font-bold text-xs sm:text-sm">₹{submission.ticketPrice}</span>
           </div>
         </div>
 

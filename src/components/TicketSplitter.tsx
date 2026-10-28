@@ -262,34 +262,34 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
       )}
 
       {/* 3. Movie Header & Ticket Price Input */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-xl flex flex-col sm:flex-row items-center gap-5">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
         {movie.poster_path ? (
           <img
             src={movie.poster_path}
             alt={movie.title}
-            className="w-24 h-36 object-cover rounded-2xl shadow-lg shrink-0 border border-zinc-700/50"
+            className="w-20 h-28 sm:w-24 sm:h-36 object-cover rounded-xl sm:rounded-2xl shadow-lg shrink-0 border border-zinc-700/50"
           />
         ) : (
-          <div className="w-24 h-36 bg-zinc-800 rounded-2xl flex items-center justify-center shrink-0">
-            <Film className="w-8 h-8 text-zinc-600" />
+          <div className="w-20 h-28 sm:w-24 sm:h-36 bg-zinc-800 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0">
+            <Film className="w-7 h-7 sm:w-8 sm:h-8 text-zinc-600" />
           </div>
         )}
         <div className="flex-1 text-center sm:text-left">
-          <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-semibold border border-amber-500/20 mb-1.5">
+          <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] sm:text-[11px] font-semibold border border-amber-500/20 mb-1">
             VALUATE TICKET
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">{movie.title}</h2>
-          <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{movie.overview}</p>
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">{movie.title}</h2>
+          <p className="text-[11px] sm:text-xs text-zinc-400 mt-1 line-clamp-2">{movie.overview}</p>
 
           {/* Ticket Price Selection - Custom Manual Input */}
-          <div className="mt-4 space-y-2">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <div className="mt-3 sm:mt-4 space-y-2">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2">
               <span className="text-xs text-zinc-400 font-semibold mr-1">Ticket Price:</span>
               {PRESET_PRICES.map((price) => (
                 <button
                   key={price}
                   onClick={() => handlePresetSelect(price)}
-                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-2.5 sm:px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                     ticketPrice === price && customPriceInput === String(price)
                       ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/30'
                       : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
@@ -300,7 +300,7 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
               ))}
 
               {/* Custom Editable Price Box */}
-              <div className="flex items-center gap-1.5 bg-zinc-800 px-3 py-1 rounded-xl border border-zinc-700 focus-within:border-amber-500 transition-colors">
+              <div className="flex items-center gap-1.5 bg-zinc-800 px-2.5 sm:px-3 py-1 rounded-xl border border-zinc-700 focus-within:border-amber-500 transition-colors">
                 <span className="text-xs text-amber-400 font-bold">₹</span>
                 <input
                   type="text"
@@ -308,11 +308,11 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
                   value={customPriceInput}
                   onChange={(e) => handleCustomPriceChange(e.target.value)}
                   placeholder="Custom"
-                  className="w-16 bg-transparent text-xs font-bold text-white focus:outline-none placeholder-zinc-500"
+                  className="w-14 sm:w-16 bg-transparent text-xs font-bold text-white focus:outline-none placeholder-zinc-500"
                 />
               </div>
             </div>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[10px] sm:text-[11px] text-zinc-500">
               *All slider values start at <strong>₹0</strong>. Move sliders or type amounts manually.
             </p>
           </div>
@@ -320,49 +320,49 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
       </div>
 
       {/* 4. Real-time Balance Status Bar */}
-      <div className={`p-4 rounded-2xl border transition-all ${
+      <div className={`p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all ${
         isPerfect 
           ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
           : isOver 
           ? 'bg-rose-950/40 border-rose-500/40 text-rose-300' 
           : 'bg-amber-950/40 border-amber-500/40 text-amber-300'
       }`}>
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs">
+          <div className="flex items-center gap-2 text-center sm:text-left">
             {isPerfect ? (
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
             ) : (
               <AlertTriangle className="w-5 h-5 shrink-0 animate-pulse" />
             )}
             <div>
-              <p className="font-bold text-sm">
+              <p className="font-bold text-xs sm:text-sm">
                 {isPerfect
                   ? '✨ Ticket Value 100% Balanced!'
                   : isOver
                   ? `Overallocated by ₹${Math.abs(balance)}`
                   : `₹${balance} remaining to allocate`}
               </p>
-              <p className="text-[11px] opacity-80">
+              <p className="text-[10px] sm:text-[11px] opacity-80">
                 Allocated: ₹{totalAllocated} of ₹{ticketPrice}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-center sm:justify-end">
             <button
               onClick={handleAutoBalance}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium border border-zinc-700 transition-colors"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium border border-zinc-700 transition-colors"
               title="Automatically distribute remaining rupees evenly"
             >
               <Scale className="w-3.5 h-3.5" />
-              <span>Fill Remaining Evenly</span>
+              <span>Fill Remaining</span>
             </button>
 
             <button
               onClick={handleResetToZero}
-              className="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-700 transition-colors"
+              className="px-2.5 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-700 transition-colors shrink-0"
             >
-              Clear to 0
+              Clear 0
             </button>
           </div>
         </div>
@@ -370,17 +370,17 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
 
       {/* 5. Contributor Sliders List */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
             <Sliders className="w-4 h-4 text-amber-400" />
             Cast & Crew Valuations (₹{ticketPrice}):
           </h3>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Button to add from movie cast & crew */}
             <button
               onClick={() => setShowAddCreditModal(true)}
-              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 transition-colors"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-[11px] sm:text-xs px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add From Cast/Crew</span>
@@ -389,7 +389,7 @@ export const TicketSplitter: React.FC<TicketSplitterProps> = ({ movie, onSplitCo
             {/* Button to add user custom box */}
             <button
               onClick={() => setShowCustomModal(true)}
-              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-emerald-300 border border-zinc-700 transition-colors"
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-1 text-[11px] sm:text-xs px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-emerald-300 border border-zinc-700 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Custom Box</span>
