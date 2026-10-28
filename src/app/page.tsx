@@ -1,101 +1,124 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState } from 'react';
+import { Header } from '@/components/Header';
+import { SearchBar } from '@/components/SearchBar';
+import { TicketSplitter } from '@/components/TicketSplitter';
+import { ReceiptCard } from '@/components/ReceiptCard';
+import { LeaderboardView } from '@/components/LeaderboardView';
+import { MyReceiptsView } from '@/components/MyReceiptsView';
+import { Movie, TicketSplitSubmission } from '@/types';
+import { MOCK_MOVIES } from '@/lib/mockData';
+import { Sparkles } from 'lucide-react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [activeTab, setActiveTab] = useState<'split' | 'leaderboard' | 'receipts'>('split');
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(MOCK_MOVIES[872585].movie); // Default to Oppenheimer
+  const [completedSubmission, setCompletedSubmission] = useState<TicketSplitSubmission | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+  const handleMovieSelect = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setCompletedSubmission(null);
+  };
+
+  return (
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
+      {/* Sticky Header */}
+      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Main Content Area */}
+      <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 sm:py-12">
+        {/* TAB 1: VALUATE & SPLIT */}
+        {activeTab === 'split' && (
+          <div className="space-y-8">
+            {/* Hero Header */}
+            {!completedSubmission && (
+              <div className="text-center space-y-3 max-w-2xl mx-auto">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>CROWDSOURCED CINEMA VALUATION</span>
+                </div>
+                <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
+                  Split The Ticket.
+                  <span className="block bg-gradient-to-r from-amber-400 via-rose-400 to-amber-200 bg-clip-text text-transparent">
+                    Rate The Real Value.
+                  </span>
+                </h1>
+                <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                  If your ticket cost ₹150, how much went to the <strong>Director</strong>, 
+                  the <strong>Hero</strong>, the <strong>BGM Composer</strong>, or <strong>Your Own Popcorn</strong>?
+                </p>
+              </div>
+            )}
+
+            {/* Search Input */}
+            {!completedSubmission && (
+              <SearchBar 
+                onSelectMovie={handleMovieSelect} 
+                selectedMovie={selectedMovie} 
+              />
+            )}
+
+            {/* Interactive Area: Splitter OR Receipt */}
+            {completedSubmission ? (
+              <div className="pt-2">
+                <ReceiptCard 
+                  submission={completedSubmission} 
+                  onReset={() => setCompletedSubmission(null)} 
+                />
+              </div>
+            ) : selectedMovie ? (
+              <TicketSplitter 
+                key={selectedMovie.id} 
+                movie={selectedMovie} 
+                onSplitCompleted={(sub) => setCompletedSubmission(sub)} 
+              />
+            ) : (
+              /* Fallback Movie Grid if no movie selected */
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
+                {Object.values(MOCK_MOVIES).map((item) => (
+                  <div
+                    key={item.movie.id}
+                    onClick={() => handleMovieSelect(item.movie)}
+                    className="group bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 rounded-2xl p-3 cursor-pointer transition-all hover:scale-[1.02] shadow-xl"
+                  >
+                    <img
+                      src={item.movie.poster_path || ''}
+                      alt={item.movie.title}
+                      className="w-full aspect-[2/3] object-cover rounded-xl mb-2"
+                    />
+                    <h4 className="font-bold text-sm text-white truncate group-hover:text-amber-400">
+                      {item.movie.title}
+                    </h4>
+                    <p className="text-xs text-zinc-400 mt-0.5">Click to Split Ticket →</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: LEADERBOARD */}
+        {activeTab === 'leaderboard' && (
+          <div className="pt-2">
+            <LeaderboardView />
+          </div>
+        )}
+
+        {/* TAB 3: MY RECEIPTS */}
+        {activeTab === 'receipts' && (
+          <div className="pt-2">
+            <MyReceiptsView onStartValuating={() => setActiveTab('split')} />
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-900 py-6 text-center text-xs text-zinc-500">
+        <p>
+          Powered by <strong>TMDB API</strong> • TicketSplit Audience Valuation Engine
+        </p>
       </footer>
-    </div>
+    </main>
   );
 }
